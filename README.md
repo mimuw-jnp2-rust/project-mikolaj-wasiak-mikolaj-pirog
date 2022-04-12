@@ -31,9 +31,11 @@ rozpatrzone/zakolejkowane/nierozpatrzone
 np silnie spójne da się podzielić na dfs i dfs odwroconymi krawędziami 
 
 ## Propozycje podziału na części 
-Mamy z tym problem niejako, to nasze aktualne pomysły
-- Pierwsza część to napisanie całości w konsoli a druga to dodanie gui
-- Pierwsza to zrobienie edytora a druga to dodanie algorytmów
+Pierwsza to zrobienie edytora i napisani jakiegoś
+prostego dfsa żeby zobaczyć czy struktury danych
+pozwalają na algorytmowanie
+
+Druga to dodanie algorytmów
 
 ## Biblioteki
 Szukamy zarówno czegoś co da nam gui jak i czegoś 
