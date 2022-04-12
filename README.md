@@ -1,27 +1,41 @@
-# Frobnicator
+# Grafy
 
 ## Autorzy
-- Andrzej Głuszak (gr 9, @agluszak na githubie)
-- Linus Torvalds (Uniwersytet Helsiński, @torvalds na githubie)
+- Mikołaj Piróg
+- Mikołaj Wasiak (@RudyMis)
 
 ## Opis
-Od zawsze chcieliśmy napisać grę komputerową.
-Frobnicator będzie to gra platformowa, w której chodzi o to, żeby...
 
-Z grubsza będziemy wzorować się na [tym tutorialu](https://dev.to/sbelzile/rust-platformer-part-1-bevy-and-ecs-2pci).
+Program służy do edycji grafu oraz wizualizacji
+algorytmów grafowych. 
+
+Będziemy się wzorować na [tym edytorze](https://csacademy.com/app/graph_editor/) 
 
 ## Funkcjonalność
-- Generowanie map
-- Strzelanie
-- AI dla wrogów (bardziej rozbudowane niż w tutorialu)
-- Możliwość zapisywania i wczytywania stanu gry
-- Punktacja
 
-## Propozycja podziału na części
-W pierwszej części stworzymy grę opartą na tutorialu (z lepszym AI) i jedną zahardcodowaną planszą.
+Edytowanie grafu
+- Dodawanie i usuwanie wierzchołków 
+- Łączenie wierzchołków krawędziami skierowanymi
+lub nieskierowanymi
+- Przesuwanie wierzchołków po okienku
+- Zapisywanie jakiś wartości w wierzchołku 
+do rozróżnienia/nazywania ich
+- Automatyczną separacja wierzchołków
+(jak w przykładzie)
 
-W drugiej części dodamy do tego losowy generator map, zapisywanie/wczytywanie stanu gry oraz system punktacji.
+Algorytmy grafowe
+- Chcemy żeby było widać każdy krok grafu
+- Kolorowanie wierzchołków w zależności czy są 
+rozpatrzone/zakolejkowane/nierozpatrzone
+- Dzielenie algorytmów na części gdy są skomplikowane
+np silnie spójne da się podzielić na dfs i dfs odwroconymi krawędziami 
+
+## Propozycje podziału na części 
+Mamy z tym problem niejako, to nasze aktualne pomysły
+- Pierwsza część to napisanie całości w konsoli a druga to dodanie gui
+- Pierwsza to zrobienie edytora a druga to dodanie algorytmów
 
 ## Biblioteki
-- Bevy
-- może coś do serializacji danych? (czy mógłby Pan coś polecić?)
+Szukamy zarówno czegoś co da nam gui jak i czegoś 
+na czym da się rysować kształty i je animować. Aktualnie stanęło na
+[egui](https://docs.rs/egui) + [tetra](https://tetra.seventeencups.net/) 
