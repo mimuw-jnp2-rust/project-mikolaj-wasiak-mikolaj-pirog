@@ -1,15 +1,26 @@
-use crate::game_state::GameState;
+use petgraph::{Directed, Graph};
 use tetra::math::Vec2;
 
-pub trait InputState {
-    fn on_left_click(self, game_state: &mut GameState, position: Vec2<f32>);
+#[derive(PartialEq)]
+pub enum InputState {
+    Add,
+    Remove,
+    Move,
 }
 
-#[derive(PartialEq)]
-pub struct AddState {}
-
-impl InputState for AddState {
-    fn on_left_click(self, game_state: &mut GameState, position: Vec2<f32>) {
-        game_state.graph.add_node(position);
+impl InputState {
+    // TODO: Tu chyba powinniśmy dać jakoś inaczej zbiór wierzchołków, ale cokolwiek na razie
+    pub fn on_left_click(
+        &self,
+        graph: &mut Graph<Vec2<f32>, (), Directed, u32>,
+        position: Vec2<f32>,
+    ) {
+        match self {
+            InputState::Add => {
+                graph.add_node(position);
+            }
+            InputState::Remove => todo!(),
+            InputState::Move => todo!(),
+        }
     }
 }
