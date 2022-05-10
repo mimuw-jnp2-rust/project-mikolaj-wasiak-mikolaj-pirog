@@ -1,19 +1,25 @@
 use egui_tetra::{egui, State};
 use std::error::Error;
 use tetra::graphics::mesh::ShapeStyle;
+use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
+use tetra::input::get_mouse_position;
 use tetra::math::Vec2;
 use tetra::Context;
 
 const BASE_RADIUS: f32 = 20.0;
-const BASE_BORDER_SIZE: f32 = 2.0;
+const BASE_BORDER_SIZE: f32 = 4.0;
+const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
 
 pub struct Node {
     position: Vec2<f32>,
     radius: f32,
     border_color: Color,
     color: Color,
-    shape: Mesh,
+
+    // To change colors this has to be separate
+    circle: Mesh,
+    border: Mesh,
 }
 
 impl Node {
@@ -23,13 +29,29 @@ impl Node {
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
             color: Color::WHITE,
-            shape: Mesh::circle(
+            border: Mesh::circle(
                 ctx,
                 ShapeStyle::Stroke(BASE_BORDER_SIZE),
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
             )?,
+            circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)?,
         })
+    }
+
+    // Is point in this shape?
+    pub fn contains(&self, point: Vec2<f32>) -> bool {
+        Vec2::distance(point, self.position) <= self.radius
+    }
+
+    fn get_draw_params(&self, ctx: &mut Context) -> DrawParams {
+        DrawParams::new()
+            .scale(if self.contains(get_mouse_position(ctx)) {
+                HIGHLIGHT_SCALE
+            } else {
+                Vec2::one()
+            })
+            .position(self.position)
     }
 }
 
@@ -43,7 +65,10 @@ impl State<Box<dyn Error>> for Node {
     }
 
     fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
-        self.shape.draw(ctx, self.position);
+        let params = self.get_draw_params(ctx);
+        self.circle.draw(ctx, params.color(self.color));
+        let params = self.get_draw_params(ctx);
+        self.border.draw(ctx, params.color(self.border_color));
         Ok(())
     }
 }

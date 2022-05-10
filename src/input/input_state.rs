@@ -23,8 +23,8 @@ impl InputState {
             InputState::Add => {
                 graph.add_node(Node::new(ctx, position)?);
             }
-            InputState::Remove => todo!(),
-            InputState::Move => todo!(),
+            InputState::Remove => {}
+            InputState::Move => {}
         }
         Ok(())
     }
