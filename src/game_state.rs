@@ -1,16 +1,14 @@
+use crate::graph::node::Node;
 use crate::input::input_state::InputState;
 use egui_tetra::egui;
 use petgraph::{Directed, Graph};
 use std::error::Error;
-use tetra::graphics::{self, Color, DrawParams, Texture};
+use tetra::graphics::{self, Color, Texture};
 use tetra::input::MouseButton;
-use tetra::math::Vec2;
 use tetra::{input, Context};
 
-type Position = Vec2<f32>;
-
 pub struct GameState {
-    pub graph: Graph<Position, (), Directed, u32>,
+    pub graph: Graph<Node, (), Directed, u32>,
     pub circle_textrue: Texture,
     pub input_state: InputState,
 }
@@ -26,16 +24,10 @@ impl GameState {
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
-    fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
+    fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
-
-        for node in self.graph.raw_nodes() {
-            self.circle_textrue.draw(
-                ctx,
-                DrawParams::new()
-                    .position(node.weight)
-                    .scale(Vec2::new(0.1, 0.1)),
-            )
+        for node in self.graph.node_weights_mut() {
+            node.draw(ctx, egui_ctx)?;
         }
 
         Ok(())
@@ -64,7 +56,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         } = &event
         {
             self.input_state
-                .on_left_click(&mut self.graph, input::get_mouse_position(ctx));
+                .on_left_click(ctx, &mut self.graph, input::get_mouse_position(ctx))?;
         }
         Ok(())
     }
