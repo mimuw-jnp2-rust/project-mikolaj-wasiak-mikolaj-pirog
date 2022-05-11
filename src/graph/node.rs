@@ -11,11 +11,17 @@ const BASE_RADIUS: f32 = 20.0;
 const BASE_BORDER_SIZE: f32 = 4.0;
 const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
 
+pub enum NodeHighlight {
+    Highlighted,
+    Normal,
+}
+
 pub struct Node {
     position: Vec2<f32>,
     radius: f32,
     border_color: Color,
     color: Color,
+    highlight: NodeHighlight,
 
     // To change colors this has to be separate
     circle: Mesh,
@@ -36,6 +42,7 @@ impl Node {
                 BASE_RADIUS,
             )?,
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)?,
+            highlight: NodeHighlight::Normal,
         })
     }
 
@@ -46,12 +53,20 @@ impl Node {
 
     fn get_draw_params(&self, ctx: &mut Context) -> DrawParams {
         DrawParams::new()
-            .scale(if self.contains(get_mouse_position(ctx)) {
-                HIGHLIGHT_SCALE
-            } else {
-                Vec2::one()
-            })
+            .scale(
+                if matches!(self.highlight, NodeHighlight::Highlighted)
+                    || self.contains(get_mouse_position(ctx))
+                {
+                    HIGHLIGHT_SCALE
+                } else {
+                    Vec2::one()
+                },
+            )
             .position(self.position)
+    }
+
+    pub fn set_highlight(&mut self, highlight: NodeHighlight) {
+        self.highlight = highlight;
     }
 }
 
