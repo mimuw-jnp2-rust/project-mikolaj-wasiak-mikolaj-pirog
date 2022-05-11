@@ -1,6 +1,7 @@
 use crate::graph::node::Node;
 use petgraph::{Directed, Graph};
 use std::error::Error;
+use tetra::input::get_mouse_position;
 use tetra::math::Vec2;
 use tetra::Context;
 
@@ -12,7 +13,6 @@ pub enum InputState {
 }
 
 impl InputState {
-    // TODO: Tu chyba powinniśmy dać jakoś inaczej zbiór wierzchołków, ale cokolwiek na razie
     pub fn on_left_click(
         &self,
         ctx: &mut Context,
@@ -23,7 +23,16 @@ impl InputState {
             InputState::Add => {
                 graph.add_node(Node::new(ctx, position)?);
             }
-            InputState::Remove => {}
+            InputState::Remove => {
+                graph
+                    .node_indices()
+                    .find(|idx| {
+                        graph
+                            .node_weight(*idx)
+                            .map_or(false, |node| node.contains(get_mouse_position(ctx)))
+                    })
+                    .map(|idx| graph.remove_node(idx));
+            }
             InputState::Move => {}
         }
         Ok(())
