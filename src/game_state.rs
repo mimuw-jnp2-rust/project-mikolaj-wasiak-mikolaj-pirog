@@ -1,5 +1,5 @@
 use crate::graph::node::Node;
-use crate::input::input_state::InputState;
+use crate::input::input_state::{ConnectData, InputState};
 use egui_tetra::egui;
 use petgraph::{Directed, Graph};
 use std::error::Error;
@@ -39,6 +39,13 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             ui.horizontal(|ui| {
                 ui.selectable_value(&mut self.input_state, InputState::Add, "Add");
                 ui.selectable_value(&mut self.input_state, InputState::Remove, "Remove");
+            });
+            ui.horizontal(|ui| {
+                ui.selectable_value(
+                    &mut self.input_state,
+                    InputState::Connect(ConnectData::default()),
+                    "Connect",
+                );
                 ui.selectable_value(&mut self.input_state, InputState::Move, "Move");
             });
         });
