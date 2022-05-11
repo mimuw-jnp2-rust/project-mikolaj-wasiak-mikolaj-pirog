@@ -2,7 +2,7 @@ use egui_tetra::{egui, State};
 use std::error::Error;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
-use tetra::graphics::{mesh::Mesh, Color, Camera};
+use tetra::graphics::{mesh::Mesh, Camera, Color};
 use tetra::input::get_mouse_position;
 use tetra::math::Vec2;
 use tetra::Context;
@@ -44,7 +44,7 @@ impl Node {
         Vec2::distance(point, self.position) <= self.radius
     }
 
-    fn get_draw_params(&self, position : Vec2<f32>) -> DrawParams {
+    fn get_draw_params(&self, position: Vec2<f32>) -> DrawParams {
         DrawParams::new()
             .scale(if self.contains(position) {
                 HIGHLIGHT_SCALE
@@ -64,8 +64,12 @@ impl Node {
         Ok(())
     }
 
-
-    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) -> Result<(), Box<dyn Error>> {
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        _egui_ctx: &egui::CtxRef,
+        mouse_position: Vec2<f32>,
+    ) -> Result<(), Box<dyn Error>> {
         let params = self.get_draw_params(mouse_position);
         self.circle.draw(ctx, params.color(self.color));
         let params = self.get_draw_params(mouse_position);

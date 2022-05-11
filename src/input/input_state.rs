@@ -33,15 +33,13 @@ impl InputState {
                     .get_node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
             }
-            InputState::Move => {},
+            InputState::Move => {}
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
-                    graph
-                        .get_node_from_point(position)
-                        .map(|to| {
-                            graph.add_edge(from, to, ());
-                            println!("Connecting {} -> {}", from.index(), to.index());
-                        });
+                    graph.get_node_from_point(position).map(|to| {
+                        graph.add_edge(from, to, ());
+                        println!("Connecting {} -> {}", from.index(), to.index());
+                    });
                     data.from_node = None;
                 }
                 None => data.from_node = graph.get_node_from_point(position),
@@ -49,7 +47,6 @@ impl InputState {
         }
         Ok(())
     }
-
 }
 
 impl PartialEq for InputState {

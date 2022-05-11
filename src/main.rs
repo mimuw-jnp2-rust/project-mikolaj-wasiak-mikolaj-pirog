@@ -1,7 +1,7 @@
 use egui_tetra::StateWrapper;
+use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use std::error::Error;
 use tetra::ContextBuilder;
-use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 mod game_state;
 pub use crate::game_state::GameState;
