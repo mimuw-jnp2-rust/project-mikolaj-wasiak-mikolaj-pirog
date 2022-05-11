@@ -2,7 +2,7 @@ use egui_tetra::{egui, State};
 use std::error::Error;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
-use tetra::graphics::{mesh::Mesh, Color};
+use tetra::graphics::{mesh::Mesh, Color, Camera};
 use tetra::input::get_mouse_position;
 use tetra::math::Vec2;
 use tetra::Context;
@@ -63,6 +63,7 @@ impl State<Box<dyn Error>> for Node {
     ) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
+
 
     fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         let params = self.get_draw_params(ctx);
