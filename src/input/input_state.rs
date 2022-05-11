@@ -33,7 +33,7 @@ impl InputState {
                     .get_node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
             }
-            InputState::Move => {}
+            InputState::Move => {},
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
                     graph
@@ -49,6 +49,7 @@ impl InputState {
         }
         Ok(())
     }
+
 }
 
 impl PartialEq for InputState {

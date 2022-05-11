@@ -16,7 +16,7 @@ pub struct GameState {
     pub graph: Graph<Node, (), Directed, u32>,
     pub circle_textrue: Texture,
     pub input_state: InputState,
-    camera : Camera,
+    pub camera : Camera,
     scaler : ScreenScaler,
 }
 
@@ -38,7 +38,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
         for node in self.graph.node_weights_mut() {
-            node.draw(ctx, egui_ctx)?;
+            node.draw(ctx, egui_ctx, self.camera.mouse_position(ctx))?;
         }
         
         graphics::reset_transform_matrix(ctx);

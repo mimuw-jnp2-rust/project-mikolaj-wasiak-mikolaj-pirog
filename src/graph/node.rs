@@ -44,9 +44,9 @@ impl Node {
         Vec2::distance(point, self.position) <= self.radius
     }
 
-    fn get_draw_params(&self, ctx: &mut Context) -> DrawParams {
+    fn get_draw_params(&self, position : Vec2<f32>) -> DrawParams {
         DrawParams::new()
-            .scale(if self.contains(get_mouse_position(ctx)) {
+            .scale(if self.contains(position) {
                 HIGHLIGHT_SCALE
             } else {
                 Vec2::one()
@@ -55,7 +55,7 @@ impl Node {
     }
 }
 
-impl State<Box<dyn Error>> for Node {
+impl Node {
     fn update(
         &mut self,
         _ctx: &mut Context,
@@ -65,10 +65,10 @@ impl State<Box<dyn Error>> for Node {
     }
 
 
-    fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
-        let params = self.get_draw_params(ctx);
+    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) -> Result<(), Box<dyn Error>> {
+        let params = self.get_draw_params(mouse_position);
         self.circle.draw(ctx, params.color(self.color));
-        let params = self.get_draw_params(ctx);
+        let params = self.get_draw_params(mouse_position);
         self.border.draw(ctx, params.color(self.border_color));
         Ok(())
     }
