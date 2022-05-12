@@ -1,9 +1,9 @@
-use egui_tetra::{egui, State};
+use super::Position;
+use egui_tetra::egui;
 use std::error::Error;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
-use tetra::graphics::{mesh::Mesh, Camera, Color};
-use tetra::input::get_mouse_position;
+use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
 
@@ -17,7 +17,7 @@ pub enum NodeHighlight {
 }
 
 pub struct Node {
-    position: Vec2<f32>,
+    position: Position,
     radius: f32,
     border_color: Color,
     color: Color,
@@ -29,7 +29,7 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(ctx: &mut Context, position: Vec2<f32>) -> Result<Node, Box<dyn Error>> {
+    pub fn new(ctx: &mut Context, position: Position) -> Result<Node, Box<dyn Error>> {
         Ok(Node {
             position,
             radius: BASE_RADIUS,
@@ -47,16 +47,14 @@ impl Node {
     }
 
     // Is point in this shape?
-    pub fn contains(&self, point: Vec2<f32>) -> bool {
+    pub fn contains(&self, point: Position) -> bool {
         Vec2::distance(point, self.position) <= self.radius
     }
 
-    fn get_draw_params(&self, position: Vec2<f32>) -> DrawParams {
+    fn get_draw_params(&self, position: Position) -> DrawParams {
         DrawParams::new()
             .scale(
-                if matches!(self.highlight, NodeHighlight::Highlighted)
-                    || self.contains(position)
-                {
+                if matches!(self.highlight, NodeHighlight::Highlighted) || self.contains(position) {
                     HIGHLIGHT_SCALE
                 } else {
                     Vec2::one()
@@ -67,6 +65,10 @@ impl Node {
 
     pub fn set_highlight(&mut self, highlight: NodeHighlight) {
         self.highlight = highlight;
+    }
+
+    pub fn position(&self) -> Position {
+        self.position
     }
 }
 

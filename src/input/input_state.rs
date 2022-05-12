@@ -1,5 +1,7 @@
+use crate::graph::edge::Edge;
 use crate::graph::node::NodeHighlight;
 use crate::graph::GraphOnCanvas;
+use crate::graph::Position;
 use crate::graph::{node::Node, Graph};
 use petgraph::graph::NodeIndex;
 use std::error::Error;
@@ -9,15 +11,6 @@ use tetra::Context;
 #[derive(Default)]
 pub struct ConnectData {
     from_node: Option<NodeIndex<u32>>,
-}
-
-impl Drop for ConnectData {
-    fn drop(&mut self) {
-        todo!();
-        self.from_node
-            .and_then(|idx| graph.node_weight_mut(idx))
-            .map(|node| node.set_highlight(NodeHighlight::Highlighted));
-    }
 }
 
 pub enum InputState {
@@ -48,9 +41,22 @@ impl InputState {
                 Some(from) => {
                     graph
                         .get_node_from_point(position)
-                        .map(|to| {
-                            graph.add_edge(from, to, ());
+                        .map(|to| -> Result<(), Box<dyn Error>> {
+                            graph.add_edge(
+                                from,
+                                to,
+                                Edge::new(
+                                    ctx,
+                                    graph
+                                        .node_weight(from)
+                                        .map_or(Position::zero(), |node| node.position()),
+                                    graph
+                                        .node_weight(to)
+                                        .map_or(Position::zero(), |node| node.position()),
+                                )?,
+                            );
                             println!("Connecting {} -> {}", from.index(), to.index());
+                            Ok(())
                         });
                     graph
                         .node_weight_mut(from)

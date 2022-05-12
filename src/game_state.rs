@@ -1,19 +1,18 @@
-use crate::graph::node::Node;
+use crate::graph::Graph;
 use crate::input::input_state::{ConnectData, InputState};
 use egui_tetra::egui;
-use petgraph::{Directed, Graph};
 use std::error::Error;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
 use tetra::input::{Key, MouseButton};
-use tetra::{input, Context};
+use tetra::Context;
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
 pub const CAMERA_ZOOM_SPEED: f32 = 0.05;
 
 pub struct GameState {
-    pub graph: Graph<Node, (), Directed, u32>,
+    pub graph: Graph,
     pub circle_textrue: Texture,
     pub input_state: InputState,
     pub camera: Camera,
@@ -42,6 +41,9 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
+        for edge in self.graph.edge_weights_mut() {
+            edge.draw(ctx, egui_ctx)?;
+        }
         for node in self.graph.node_weights_mut() {
             node.draw(ctx, egui_ctx, self.camera.mouse_position(ctx))?;
         }

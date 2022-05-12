@@ -1,8 +1,10 @@
 use petgraph::{graph::NodeIndex, Directed};
+pub mod edge;
 pub mod node;
+use edge::Edge;
 use node::Node;
 
-pub type Graph = petgraph::Graph<Node, (), Directed, u32>;
+pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = tetra::math::Vec2<f32>;
 
 pub trait GraphOnCanvas {
