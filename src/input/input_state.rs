@@ -1,3 +1,4 @@
+use crate::graph::node::NodeHighlight;
 use crate::graph::GraphOnCanvas;
 use crate::graph::{node::Node, Graph};
 use petgraph::graph::NodeIndex;
@@ -8,6 +9,15 @@ use tetra::Context;
 #[derive(Default)]
 pub struct ConnectData {
     from_node: Option<NodeIndex<u32>>,
+}
+
+impl Drop for ConnectData {
+    fn drop(&mut self) {
+        todo!();
+        self.from_node
+            .and_then(|idx| graph.node_weight_mut(idx))
+            .map(|node| node.set_highlight(NodeHighlight::Highlighted));
+    }
 }
 
 pub enum InputState {
@@ -36,13 +46,24 @@ impl InputState {
             InputState::Move => {}
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
-                    graph.get_node_from_point(position).map(|to| {
-                        graph.add_edge(from, to, ());
-                        println!("Connecting {} -> {}", from.index(), to.index());
-                    });
+                    graph
+                        .get_node_from_point(position)
+                        .map(|to| {
+                            graph.add_edge(from, to, ());
+                            println!("Connecting {} -> {}", from.index(), to.index());
+                        });
+                    graph
+                        .node_weight_mut(from)
+                        .map(|node| node.set_highlight(NodeHighlight::Normal));
+
                     data.from_node = None;
                 }
-                None => data.from_node = graph.get_node_from_point(position),
+                None => {
+                    data.from_node = graph.get_node_from_point(position);
+                    data.from_node
+                        .and_then(|idx| graph.node_weight_mut(idx))
+                        .map(|node| node.set_highlight(NodeHighlight::Highlighted));
+                }
             },
         }
         Ok(())
