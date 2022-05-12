@@ -3,7 +3,6 @@ use crate::graph::GraphOnCanvas;
 use crate::graph::{node::Node, Graph};
 use petgraph::graph::NodeIndex;
 use std::error::Error;
-use tetra::input::get_mouse_position;
 use tetra::math::Vec2;
 use tetra::Context;
 
@@ -41,14 +40,14 @@ impl InputState {
             }
             InputState::Remove => {
                 graph
-                    .get_node_from_point(get_mouse_position(ctx))
+                    .get_node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
             }
             InputState::Move => {}
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
                     graph
-                        .get_node_from_point(get_mouse_position(ctx))
+                        .get_node_from_point(position)
                         .map(|to| {
                             graph.add_edge(from, to, ());
                             println!("Connecting {} -> {}", from.index(), to.index());
@@ -60,7 +59,7 @@ impl InputState {
                     data.from_node = None;
                 }
                 None => {
-                    data.from_node = graph.get_node_from_point(get_mouse_position(ctx));
+                    data.from_node = graph.get_node_from_point(position);
                     data.from_node
                         .and_then(|idx| graph.node_weight_mut(idx))
                         .map(|node| node.set_highlight(NodeHighlight::Highlighted));
