@@ -11,7 +11,7 @@ const BASE_RADIUS: f32 = 20.;
 const BASE_BORDER_SIZE: f32 = 4.;
 const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
 const REPEL_FORCE: f32 = 1000.;
-const REPEL_DISTANCE: f32 = 100.;
+const REPEL_DISTANCE: f32 = 200.;
 
 pub enum NodeHighlight {
     Highlighted,
@@ -79,6 +79,10 @@ impl Node {
         self.position = position;
     }
 
+    pub fn add_force(&mut self, force: Position) {
+        self.current_force += force;
+    }
+
     pub fn repel_from_point(&mut self, point: Position) {
         let repel_direction = (self.position() - point).normalized();
         let force_div = 1. - self.position().distance(point) / REPEL_DISTANCE;
@@ -88,14 +92,9 @@ impl Node {
         self.current_force += repel_direction * REPEL_FORCE * force_div;
     }
 
-    pub fn update(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &egui::CtxRef,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn consume_force(&mut self, ctx: &mut Context) {
         self.position += self.current_force * tetra::time::get_delta_time(ctx).as_secs_f32();
         self.current_force = Position::zero();
-        Ok(())
     }
 
     pub fn draw(
