@@ -1,6 +1,7 @@
 use egui_tetra::State;
 use std::error::Error;
 use std::f32::consts::PI;
+use std::i8::MIN;
 use tetra::graphics::mesh::GeometryBuilder;
 use tetra::graphics::{mesh::Mesh, Color, DrawParams};
 use tetra::Context;
@@ -10,6 +11,9 @@ use super::Position;
 const BASE_STROKE_WIDTH: f32 = 5.;
 const BASE_ARROW_SCALE: f32 = 0.7;
 const BASE_ARROW_ARMS_SIZE: f32 = 25.;
+
+const MIN_PULL_DISTANCE: f32 = 200.;
+const PULL_FORCE_AT_TWICE_DISTANCE: f32 = 1000.;
 
 pub struct Edge {
     from: Position,
@@ -67,6 +71,17 @@ impl Edge {
         DrawParams::new()
             .position(Position::zero())
             .color(self.color)
+    }
+
+    pub fn calculate_pull_force(&self) -> Position {
+        let distance = self.from.distance(self.to);
+        if distance < MIN_PULL_DISTANCE {
+            Position::zero()
+        } else {
+            let direction = (self.to - self.from).normalized();
+            let force_value = (distance / MIN_PULL_DISTANCE - 1.) * PULL_FORCE_AT_TWICE_DISTANCE;
+            direction * force_value
+        }
     }
 }
 

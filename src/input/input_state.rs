@@ -74,7 +74,7 @@ impl InputState {
         match self {
             InputState::Move(data) => match data.selected_node {
                 None => (),
-                Some(node_idx) => graph.update_node_position(ctx, node_idx, position)?,
+                Some(node_idx) => graph.move_node(ctx, node_idx, position)?,
             },
             _ => {}
         }

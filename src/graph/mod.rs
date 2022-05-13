@@ -1,11 +1,11 @@
 use petgraph::{
-    graph::{NodeIndex, WalkNeighbors},
-    visit::NodeRef,
+    graph::NodeIndex,
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
 use std::error::Error;
 use tetra::Context;
+
 pub mod edge;
 pub mod node;
 use edge::Edge;
@@ -22,18 +22,29 @@ pub trait GraphOnCanvas {
         from: NodeIndex,
         to: NodeIndex,
     ) -> Result<(), Box<dyn Error>>;
-    fn update_node_position(
+
+    fn move_node(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
         position: Position,
     ) -> Result<(), Box<dyn Error>>;
-    fn update_edges(
+
+    fn update_edges_position(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
         position: Position,
         direction: petgraph::EdgeDirection,
+    ) -> Result<(), Box<dyn Error>>;
+
+    fn repel_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef);
+    fn pull_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef);
+
+    fn update(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
     ) -> Result<(), Box<dyn Error>>;
 }
 
@@ -65,7 +76,7 @@ impl GraphOnCanvas for Graph {
         })
     }
 
-    fn update_edges(
+    fn update_edges_position(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
@@ -88,18 +99,65 @@ impl GraphOnCanvas for Graph {
         Ok(())
     }
 
-    fn update_node_position(
+    fn move_node(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
-        position: Position,
+        to: Position,
     ) -> Result<(), Box<dyn Error>> {
         self.node_weight_mut(idx).map(|node| {
-            node.set_position(position);
+            node.set_position(to);
         });
-        self.update_edges(ctx, idx, position, Outgoing)?;
-        self.update_edges(ctx, idx, position, Incoming)?;
+        self.update_edges_position(ctx, idx, to, Outgoing)?;
+        self.update_edges_position(ctx, idx, to, Incoming)?;
 
+        Ok(())
+    }
+
+    fn repel_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef) {
+        for idx in self.node_indices() {
+            for other_idx in self.node_indices() {
+                if idx == other_idx {
+                    continue;
+                }
+                self.node_weight(other_idx)
+                    .map(|other_node| other_node.position())
+                    .map(|other_pos| {
+                        self.node_weight_mut(idx)
+                            .map(|node| node.repel_from_point(other_pos))
+                    });
+            }
+        }
+    }
+
+    fn pull_force(&mut self, _ctx: &mut tetra::Context, _egui_ctx: &egui_tetra::egui::CtxRef) {
+        for idx in self.node_indices() {
+            let mut result = Position::zero();
+            for edge_in in self.edges_directed(idx, Incoming) {
+                result -= edge_in.weight().calculate_pull_force();
+            }
+            for edge_out in self.edges_directed(idx, Outgoing) {
+                result += edge_out.weight().calculate_pull_force();
+            }
+            self.node_weight_mut(idx).map(|node| node.add_force(result));
+        }
+    }
+
+    fn update(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
+    ) -> Result<(), Box<dyn Error>> {
+        self.repel_force(ctx, egui_ctx);
+        self.pull_force(ctx, egui_ctx);
+        for node_idx in self.node_indices() {
+            self.node_weight_mut(node_idx)
+                .map(|node| {
+                    node.consume_force(ctx);
+                    node.position()
+                })
+                .map(|pos| self.move_node(ctx, node_idx, pos));
+        }
         Ok(())
     }
 }
