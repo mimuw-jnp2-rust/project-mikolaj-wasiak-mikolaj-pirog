@@ -1,7 +1,5 @@
-use crate::graph::edge::Edge;
 use crate::graph::node::NodeHighlight;
 use crate::graph::GraphOnCanvas;
-use crate::graph::Position;
 use crate::graph::{node::Node, Graph};
 use petgraph::graph::NodeIndex;
 use std::error::Error;
@@ -13,10 +11,15 @@ pub struct ConnectData {
     from_node: Option<NodeIndex<u32>>,
 }
 
+#[derive(Default)]
+pub struct MoveData {
+    selected_node: Option<NodeIndex<u32>>,
+}
+
 pub enum InputState {
     Add,
     Remove,
-    Move,
+    Move(MoveData),
     Connect(ConnectData),
 }
 
@@ -36,28 +39,15 @@ impl InputState {
                     .get_node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
             }
-            InputState::Move => {}
+            InputState::Move(data) => match data.selected_node {
+                Some(_) => data.selected_node = None,
+                None => data.selected_node = graph.get_node_from_point(position),
+            },
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
                     graph
                         .get_node_from_point(position)
-                        .map(|to| -> Result<(), Box<dyn Error>> {
-                            graph.add_edge(
-                                from,
-                                to,
-                                Edge::new(
-                                    ctx,
-                                    graph
-                                        .node_weight(from)
-                                        .map_or(Position::zero(), |node| node.position()),
-                                    graph
-                                        .node_weight(to)
-                                        .map_or(Position::zero(), |node| node.position()),
-                                )?,
-                            );
-                            println!("Connecting {} -> {}", from.index(), to.index());
-                            Ok(())
-                        });
+                        .map(|to| graph.connect_nodes(ctx, from, to));
                     graph
                         .node_weight_mut(from)
                         .map(|node| node.set_highlight(NodeHighlight::Normal));
@@ -74,6 +64,22 @@ impl InputState {
         }
         Ok(())
     }
+
+    pub fn on_mouse_drag(
+        &mut self,
+        ctx: &mut Context,
+        graph: &mut Graph,
+        position: Vec2<f32>,
+    ) -> Result<(), Box<dyn Error>> {
+        match self {
+            InputState::Move(data) => match data.selected_node {
+                None => (),
+                Some(node_idx) => graph.update_node_position(ctx, node_idx, position)?,
+            },
+            _ => {}
+        }
+        Ok(())
+    }
 }
 
 impl PartialEq for InputState {
@@ -81,7 +87,7 @@ impl PartialEq for InputState {
         match (self, other) {
             (InputState::Add, InputState::Add) => true,
             (InputState::Remove, InputState::Remove) => true,
-            (InputState::Move, InputState::Move) => true,
+            (InputState::Move(_), InputState::Move(_)) => true,
             (InputState::Connect(_), InputState::Connect(_)) => true,
             _ => false,
         }

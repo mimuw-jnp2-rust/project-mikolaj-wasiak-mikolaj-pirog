@@ -47,8 +47,8 @@ impl Edge {
 impl State<Box<dyn Error>> for Edge {
     fn update(
         &mut self,
-        ctx: &mut Context,
-        egui_ctx: &egui_tetra::egui::CtxRef,
+        _ctx: &mut Context,
+        _egui_ctx: &egui_tetra::egui::CtxRef,
     ) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -56,7 +56,7 @@ impl State<Box<dyn Error>> for Edge {
     fn draw(
         &mut self,
         ctx: &mut Context,
-        egui_ctx: &egui_tetra::egui::CtxRef,
+        _egui_ctx: &egui_tetra::egui::CtxRef,
     ) -> Result<(), Box<dyn Error>> {
         self.shape.draw(ctx, self.get_draw_params());
         Ok(())

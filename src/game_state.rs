@@ -1,5 +1,5 @@
 use crate::graph::Graph;
-use crate::input::input_state::{ConnectData, InputState};
+use crate::input::input_state::{ConnectData, InputState, MoveData};
 use egui_tetra::egui;
 use std::error::Error;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
@@ -68,7 +68,11 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                     InputState::Connect(ConnectData::default()),
                     "Connect",
                 );
-                ui.selectable_value(&mut self.input_state, InputState::Move, "Move");
+                ui.selectable_value(
+                    &mut self.input_state,
+                    InputState::Move(MoveData::default()),
+                    "Move",
+                );
             });
         });
         Ok(())
@@ -85,6 +89,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         } = &event
         {
             self.input_state.on_left_click(
+                ctx,
+                &mut self.graph,
+                self.camera.mouse_position(ctx),
+            )?;
+        }
+
+        if let tetra::Event::MouseMoved { .. } = &event {
+            self.input_state.on_mouse_drag(
                 ctx,
                 &mut self.graph,
                 self.camera.mouse_position(ctx),
