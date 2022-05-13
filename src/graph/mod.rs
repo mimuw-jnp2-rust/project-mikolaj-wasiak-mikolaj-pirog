@@ -1,11 +1,11 @@
 use petgraph::{
-    graph::{NodeIndex, WalkNeighbors},
-    visit::NodeRef,
+    graph::NodeIndex,
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
 use std::error::Error;
 use tetra::Context;
+
 pub mod edge;
 pub mod node;
 use edge::Edge;
@@ -22,18 +22,26 @@ pub trait GraphOnCanvas {
         from: NodeIndex,
         to: NodeIndex,
     ) -> Result<(), Box<dyn Error>>;
+
     fn update_node_position(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
         position: Position,
     ) -> Result<(), Box<dyn Error>>;
-    fn update_edges(
+
+    fn update_edges_position(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
         position: Position,
         direction: petgraph::EdgeDirection,
+    ) -> Result<(), Box<dyn Error>>;
+
+    fn update(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
     ) -> Result<(), Box<dyn Error>>;
 }
 
@@ -65,7 +73,7 @@ impl GraphOnCanvas for Graph {
         })
     }
 
-    fn update_edges(
+    fn update_edges_position(
         &mut self,
         ctx: &mut Context,
         idx: NodeIndex,
@@ -97,9 +105,33 @@ impl GraphOnCanvas for Graph {
         self.node_weight_mut(idx).map(|node| {
             node.set_position(position);
         });
-        self.update_edges(ctx, idx, position, Outgoing)?;
-        self.update_edges(ctx, idx, position, Incoming)?;
+        self.update_edges_position(ctx, idx, position, Outgoing)?;
+        self.update_edges_position(ctx, idx, position, Incoming)?;
 
+        Ok(())
+    }
+
+    fn update(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
+    ) -> Result<(), Box<dyn Error>> {
+        for idx in self.node_indices() {
+            for other_idx in self.node_indices() {
+                if idx == other_idx {
+                    continue;
+                }
+                self.node_weight(other_idx)
+                    .map(|other_node| other_node.position())
+                    .map(|other_pos| {
+                        self.node_weight_mut(idx)
+                            .map(|node| node.repel_from_point(other_pos))
+                    });
+            }
+        }
+        for node in self.node_weights_mut() {
+            node.update(ctx, egui_ctx)?;
+        }
         Ok(())
     }
 }

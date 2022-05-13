@@ -1,4 +1,4 @@
-use crate::graph::Graph;
+use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use egui_tetra::egui;
 use std::error::Error;
@@ -37,6 +37,14 @@ impl GameState {
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
+    fn update(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui::CtxRef,
+    ) -> Result<(), Box<dyn Error>> {
+        self.graph.update(ctx, egui_ctx)
+    }
+
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
