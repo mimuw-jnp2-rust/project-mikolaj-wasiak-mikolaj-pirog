@@ -1,14 +1,14 @@
 use crate::graph::node::Node;
+use crate::graph::Position;
 use crate::input::input_state::{ConnectData, InputState};
 use egui_tetra::egui;
+use egui_tetra::egui::CtxRef;
 use petgraph::{Directed, Graph};
 use std::error::Error;
-use std::ops::{Add, AddAssign};
-use egui_tetra::egui::{CtxRef, Vec2};
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
 use tetra::input::{Key, MouseButton};
-use tetra::{input, Context};
+use tetra::Context;
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
@@ -107,28 +107,30 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
         //todo take into account rotation so moving will be absolute
         if let tetra::Event::KeyPressed { key: Key::W } = &event {
-            self.camera.position.y -= Y_AXIS_MOVE_SPEED;
+            self.camera.position +=
+                Position::unit_y().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
         }
 
         if let tetra::Event::KeyPressed { key: Key::S } = &event {
-            self.camera.position.y += Y_AXIS_MOVE_SPEED;
+            self.camera.position -=
+                Position::unit_y().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
         }
 
         if let tetra::Event::KeyPressed { key: Key::A } = &event {
-            self.camera.position.x += X_AXIS_MOVE_SPEED;
+            self.camera.position +=
+                Position::unit_x().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
         }
 
         if let tetra::Event::KeyPressed { key: Key::D } = &event {
-            self.camera.position.x -= X_AXIS_MOVE_SPEED;
+            self.camera.position -=
+                Position::unit_x().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
         }
-
 
         self.camera.update();
 
         if let tetra::Event::Resized { width, height } = event {
             self.scaler.set_outer_size(width, height);
         }
-
 
         Ok(())
     }
