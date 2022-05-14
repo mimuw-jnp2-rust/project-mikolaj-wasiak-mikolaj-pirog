@@ -8,6 +8,7 @@ pub use crate::game_state::GameState;
 
 mod graph;
 mod input;
+mod camera_event;
 
 fn main() -> Result<(), Box<dyn Error>> {
     ContextBuilder::new("Graph vis", SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32)

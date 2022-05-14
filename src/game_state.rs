@@ -1,5 +1,6 @@
 use crate::graph::node::Node;
 use crate::input::input_state::{ConnectData, InputState};
+use crate::camera_event;
 use egui_tetra::egui;
 use petgraph::{Directed, Graph};
 use std::error::Error;
@@ -12,17 +13,15 @@ use tetra::{input, Context};
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
-pub const CAMERA_ZOOM_SPEED: f32 = 0.05;
 const ROTATION_SPEED: f32 = 0.05;
-const Y_AXIS_MOVE_SPEED: f32 = 10.;
-const X_AXIS_MOVE_SPEED: f32 = 10.;
+
 
 pub struct GameState {
     pub graph: Graph<Node, (), Directed, u32>,
     pub circle_textrue: Texture,
     pub input_state: InputState,
     pub camera: Camera,
-    scaler: ScreenScaler,
+    pub(crate) scaler: ScreenScaler,
 }
 
 impl GameState {
@@ -93,41 +92,9 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 self.camera.mouse_position(ctx),
             )?;
         }
+        camera_event::handle_camera_events(self, event);
+        //todo move capturing camera related i  nput to appropriate function.
 
-        //todo move capturing camera related input to appropriate function.
-
-        // Only y coordinate is accessed because x corresponds to horizontal move of mouse wheel.
-        if let tetra::Event::MouseWheelMoved { amount } = &event {
-            if amount.y > 0 {
-                self.camera.scale += CAMERA_ZOOM_SPEED;
-            } else {
-                self.camera.scale -= CAMERA_ZOOM_SPEED;
-            }
-        }
-
-        //todo take into account rotation so moving will be absolute
-        if let tetra::Event::KeyPressed { key: Key::W } = &event {
-            self.camera.position.y -= Y_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::S } = &event {
-            self.camera.position.y += Y_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::A } = &event {
-            self.camera.position.x += X_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::D } = &event {
-            self.camera.position.x -= X_AXIS_MOVE_SPEED;
-        }
-
-
-        self.camera.update();
-
-        if let tetra::Event::Resized { width, height } = event {
-            self.scaler.set_outer_size(width, height);
-        }
 
 
         Ok(())
