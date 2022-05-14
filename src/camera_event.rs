@@ -18,22 +18,24 @@ pub fn handle_camera_events(game_state: &mut GameState, event: tetra::Event) -> 
         }
     }
 
-    //todo take into account rotation so moving will be absolute
     if let tetra::Event::KeyPressed { key: Key::W } = &event {
-        game_state.camera.position.y += Y_AXIS_MOVE_SPEED;
-        game_state.camera.position.rotate_z(PI/2. - game_state.camera.rotation);
+        self.camera.position +=
+            Position::unit_y().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
     }
 
     if let tetra::Event::KeyPressed { key: Key::S } = &event {
-        game_state.camera.position.y -= Y_AXIS_MOVE_SPEED;
+        self.camera.position -=
+            Position::unit_y().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
     }
 
     if let tetra::Event::KeyPressed { key: Key::A } = &event {
-        game_state.camera.position.x += X_AXIS_MOVE_SPEED;
+        self.camera.position +=
+            Position::unit_x().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
     }
 
     if let tetra::Event::KeyPressed { key: Key::D } = &event {
-        game_state.camera.position.x -= X_AXIS_MOVE_SPEED;
+        self.camera.position -=
+            Position::unit_x().rotated_z(-self.camera.rotation) * Y_AXIS_MOVE_SPEED;
     }
 
 
