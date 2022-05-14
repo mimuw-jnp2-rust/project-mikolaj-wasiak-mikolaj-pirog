@@ -65,6 +65,14 @@ pub trait GraphOnCanvas {
 }
 
 impl GraphOnCanvas for Graph {
+    fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>> {
+        // Reversing to select node that is on top
+        self.node_indices().rev().find(|idx| {
+            self.node_weight(*idx)
+                .map_or(false, |node| node.contains(point))
+        })
+    }
+
     // Wrapper for add_edge function
     fn connect_nodes(
         &mut self,
@@ -84,12 +92,19 @@ impl GraphOnCanvas for Graph {
         Ok(())
     }
 
-    fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>> {
-        // Reversing to select node that is on top
-        self.node_indices().rev().find(|idx| {
-            self.node_weight(*idx)
-                .map_or(false, |node| node.contains(point))
-        })
+    fn move_node(
+        &mut self,
+        ctx: &mut Context,
+        idx: NodeIndex,
+        to: Position,
+    ) -> Result<(), Box<dyn Error>> {
+        self.node_weight_mut(idx).map(|node| {
+            node.set_position(to);
+        });
+        self.update_edges_position(ctx, idx, to, Outgoing)?;
+        self.update_edges_position(ctx, idx, to, Incoming)?;
+
+        Ok(())
     }
 
     fn update_edges_position(
@@ -112,21 +127,6 @@ impl GraphOnCanvas for Graph {
                 }
             }
         }
-        Ok(())
-    }
-
-    fn move_node(
-        &mut self,
-        ctx: &mut Context,
-        idx: NodeIndex,
-        to: Position,
-    ) -> Result<(), Box<dyn Error>> {
-        self.node_weight_mut(idx).map(|node| {
-            node.set_position(to);
-        });
-        self.update_edges_position(ctx, idx, to, Outgoing)?;
-        self.update_edges_position(ctx, idx, to, Incoming)?;
-
         Ok(())
     }
 
@@ -165,7 +165,9 @@ impl GraphOnCanvas for Graph {
             for edge_out in self.edges_directed(idx, Outgoing) {
                 result += edge_out.weight().calculate_pull_force(pull_conf);
             }
-            self.node_weight_mut(idx).map(|node| node.add_force(result));
+            if let Some(node) = self.node_weight_mut(idx) {
+                node.add_force(result)
+            }
         }
     }
 

@@ -1,11 +1,12 @@
+use std::collections::VecDeque;
+
 use petgraph::graph::{Node, NodeIndex};
 use petgraph::Direction;
-use std::collections::VecDeque;
 use tetra::graphics::Color;
 use tetra::Context;
 
 use crate::graph::node::NodeState;
-use crate::graph::Graph;
+use crate::graph::{Graph, GraphOnCanvas};
 
 // Heheszki
 const FUNNY_COLOR: Color = Color::rgb(2137., 2137., 2137.);
@@ -135,6 +136,7 @@ impl ShowAlgorithm for Dfs {
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
+
         self.dfs(graph, starting_node_idx);
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);

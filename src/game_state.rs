@@ -1,17 +1,8 @@
 use std::error::Error;
+use std::ops::{Add, AddAssign};
 use std::ops::{Deref, DerefMut};
 
 use egui_tetra::egui;
-use crate::input::input_state::{ConnectData, InputState};
-use crate::graph::node::Node;
-use crate::camera_event;
-use crate::graph::edge::PullForceConfig;
-use crate::graph::node::PushForceConfig;
-use crate::graph::{Graph, GraphOnCanvas};
-use crate::input::input_state::{ConnectData, InputState, MoveData};
-use egui_tetra::egui;
-use std::error::Error;
-use std::ops::{Add, AddAssign};
 use egui_tetra::egui::{CtxRef, Vec2};
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
@@ -19,7 +10,9 @@ use tetra::input::{Key, MouseButton};
 use tetra::Context;
 
 use crate::algo::{Dfs, ShowAlgorithm};
+use crate::camera_event;
 use crate::graph::edge::PullForceConfig;
+use crate::graph::node::Node;
 use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{ConnectData, InputState, MoveData};
@@ -28,14 +21,12 @@ pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
 const ROTATION_SPEED: f32 = 0.05;
 
-
 pub struct GameState {
     pub graph: Graph,
     pub circle_textrue: Texture,
     pub input_state: InputState,
     pub camera: Camera,
-    pub(crate) scaler: ScreenScaler,
-    scaler: ScreenScaler,
+    pub scaler: ScreenScaler,
 
     // This maybe should be under ui struct
     // But we don't have ui struct
@@ -72,21 +63,6 @@ impl GameState {
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
-    fn update(
-        &mut self,
-        ctx: &mut tetra::Context,
-        egui_ctx: &egui::CtxRef,
-    ) -> Result<(), Box<dyn Error>> {
-        self.graph
-            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)?;
-
-        if let Some(alg) = &mut self.algorithm {
-            alg.update(ctx, &mut self.graph);
-        }
-
-        Ok(())
-    }
-
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
@@ -149,6 +125,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 self.algorithm = Some(Box::new(Dfs::new()));
                 if let Some(idx) = self.graph.node_indices().next() {
                     if let Some(algo) = &mut self.algorithm {
+                        self.graph.move_node(_ctx, idx, self.camera.position);
                         algo.deref_mut().run_algorithm(&mut self.graph, idx);
                     }
                 }
@@ -163,6 +140,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         _egui_ctx: &egui::CtxRef,
         event: tetra::Event,
     ) -> Result<(), Box<dyn Error>> {
+        if let tetra::Event::MouseMoved { .. } = &event {
+            self.input_state.on_mouse_drag(
+                ctx,
+                &mut self.graph,
+                self.camera.mouse_position(ctx),
+            )?;
+        }
+
         if let tetra::Event::MouseButtonPressed {
             button: MouseButton::Left,
         } = &event
@@ -174,25 +159,18 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             )?;
         }
         camera_event::handle_camera_events(self, event);
-        //todo move capturing camera related i  nput to appropriate function.
-
-
 
         Ok(())
     }
 
     fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
-        if let tetra::Event::MouseMoved { .. } = &event {
-            self.input_state.on_mouse_drag(
-                ctx,
-                &mut self.graph,
-                self.camera.mouse_position(ctx),
-            )?;
+        self.graph
+            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)?;
+
+        if let Some(alg) = &mut self.algorithm {
+            alg.update(ctx, &mut self.graph);
         }
 
-        if let tetra::Event::KeyPressed { key: Key::LeftCtrl } = &event {
-            self.camera.scale += CAMERA_ZOOM_SPEED;
-        }
         if tetra::input::is_key_down(ctx, Key::Q) {
             self.camera.rotation += ROTATION_SPEED;
         }
