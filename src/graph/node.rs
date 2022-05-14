@@ -1,11 +1,13 @@
-use super::Position;
-use egui_tetra::egui;
 use std::error::Error;
+
+use egui_tetra::egui;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
+
+use super::Position;
 
 const BASE_RADIUS: f32 = 20.;
 const BASE_BORDER_SIZE: f32 = 4.;
@@ -16,12 +18,22 @@ pub enum NodeHighlight {
     Normal,
 }
 
+pub enum NodeState {
+    Visited,
+    Queued,
+    NotVisited,
+}
+
 pub struct Node {
     position: Position,
     radius: f32,
+
     border_color: Color,
     color: Color,
+
     highlight: NodeHighlight,
+    algorithm_state: NodeState,
+
     current_force: Position,
 
     // To change colors this has to be separate
@@ -48,6 +60,7 @@ impl Node {
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
             )?,
+            algorithm_state: NodeState::NotVisited,
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)?,
             highlight: NodeHighlight::Normal,
         })
@@ -111,5 +124,30 @@ impl Node {
         let params = self.get_draw_params(mouse_position);
         self.border.draw(ctx, params.color(self.border_color));
         Ok(())
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
+    }
+
+    pub fn get_color(&self) -> Color {
+        self.color
+    }
+
+    pub fn get_state(&self) -> &NodeState {
+        &self.algorithm_state
+    }
+
+    pub fn set_state(&mut self, state: NodeState) {
+        self.algorithm_state = state;
+        self.color = match self.algorithm_state {
+            NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
+            NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
+            NodeState::NotVisited => Color::WHITE,
+        };
+        println!(
+            "New color {}, {}, {}",
+            self.color.r, self.color.g, self.color.b
+        );
     }
 }
