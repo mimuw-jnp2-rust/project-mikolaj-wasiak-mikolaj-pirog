@@ -11,6 +11,7 @@ mod algo;
 mod game_state;
 mod graph;
 mod input;
+mod camera_event;
 
 fn main() -> Result<(), Box<dyn Error>> {
     ContextBuilder::new("Graph vis", SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32)

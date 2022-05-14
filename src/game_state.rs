@@ -1,13 +1,24 @@
 use std::error::Error;
 use std::ops::{Deref, DerefMut};
 
-use crate::algo::{Dfs, ShowAlgorithm};
 use egui_tetra::egui;
+use crate::input::input_state::{ConnectData, InputState};
+use crate::graph::node::Node;
+use crate::camera_event;
+use crate::graph::edge::PullForceConfig;
+use crate::graph::node::PushForceConfig;
+use crate::graph::{Graph, GraphOnCanvas};
+use crate::input::input_state::{ConnectData, InputState, MoveData};
+use egui_tetra::egui;
+use std::error::Error;
+use std::ops::{Add, AddAssign};
+use egui_tetra::egui::{CtxRef, Vec2};
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
 use tetra::input::{Key, MouseButton};
 use tetra::Context;
 
+use crate::algo::{Dfs, ShowAlgorithm};
 use crate::graph::edge::PullForceConfig;
 use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
@@ -15,13 +26,15 @@ use crate::input::input_state::{ConnectData, InputState, MoveData};
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
-pub const CAMERA_ZOOM_SPEED: f32 = 0.05;
+const ROTATION_SPEED: f32 = 0.05;
+
 
 pub struct GameState {
     pub graph: Graph,
     pub circle_textrue: Texture,
     pub input_state: InputState,
     pub camera: Camera,
+    pub(crate) scaler: ScreenScaler,
     scaler: ScreenScaler,
 
     // This maybe should be under ui struct
@@ -160,7 +173,15 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 self.camera.mouse_position(ctx),
             )?;
         }
+        camera_event::handle_camera_events(self, event);
+        //todo move capturing camera related i  nput to appropriate function.
 
+
+
+        Ok(())
+    }
+
+    fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
         if let tetra::Event::MouseMoved { .. } = &event {
             self.input_state.on_mouse_drag(
                 ctx,
@@ -172,16 +193,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         if let tetra::Event::KeyPressed { key: Key::LeftCtrl } = &event {
             self.camera.scale += CAMERA_ZOOM_SPEED;
         }
-
-        if let tetra::Event::KeyPressed { key: Key::LeftAlt } = &event {
-            self.camera.scale -= CAMERA_ZOOM_SPEED;
+        if tetra::input::is_key_down(ctx, Key::Q) {
+            self.camera.rotation += ROTATION_SPEED;
+        }
+        if tetra::input::is_key_down(ctx, Key::E) {
+            self.camera.rotation -= ROTATION_SPEED;
         }
 
         self.camera.update();
-
-        if let tetra::Event::Resized { width, height } = event {
-            self.scaler.set_outer_size(width, height);
-        }
 
         Ok(())
     }
