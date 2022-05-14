@@ -10,8 +10,6 @@ use tetra::Context;
 const BASE_RADIUS: f32 = 20.;
 const BASE_BORDER_SIZE: f32 = 4.;
 const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
-const REPEL_FORCE: f32 = 1000.;
-const REPEL_DISTANCE: f32 = 200.;
 
 pub enum NodeHighlight {
     Highlighted,
@@ -29,6 +27,11 @@ pub struct Node {
     // To change colors this has to be separate
     circle: Mesh,
     border: Mesh,
+}
+
+pub struct PushForceConfig {
+    pub force: f32,
+    pub distance: f32,
 }
 
 impl Node {
@@ -83,13 +86,13 @@ impl Node {
         self.current_force += force;
     }
 
-    pub fn repel_from_point(&mut self, point: Position) {
-        let repel_direction = (self.position() - point).normalized();
-        let force_div = 1. - self.position().distance(point) / REPEL_DISTANCE;
+    pub fn push_away_from_point(&mut self, point: Position, push_conf: &PushForceConfig) {
+        let push_direction = (self.position() - point).normalized();
+        let force_div = 1. - self.position().distance(point) / push_conf.distance;
         if force_div <= 0. {
             return;
         }
-        self.current_force += repel_direction * REPEL_FORCE * force_div;
+        self.current_force += push_direction * push_conf.force * force_div;
     }
 
     pub fn consume_force(&mut self, ctx: &mut Context) {
