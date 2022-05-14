@@ -1,13 +1,17 @@
-use crate::graph::edge::PullForceConfig;
-use crate::graph::node::PushForceConfig;
-use crate::graph::{Graph, GraphOnCanvas};
-use crate::input::input_state::{ConnectData, InputState, MoveData};
-use egui_tetra::egui;
 use std::error::Error;
+use std::ops::{Deref, DerefMut};
+
+use crate::algo::{Dfs, ShowAlgorithm};
+use egui_tetra::egui;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
 use tetra::input::{Key, MouseButton};
 use tetra::Context;
+
+use crate::graph::edge::PullForceConfig;
+use crate::graph::node::PushForceConfig;
+use crate::graph::{Graph, GraphOnCanvas};
+use crate::input::input_state::{ConnectData, InputState, MoveData};
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
@@ -24,6 +28,8 @@ pub struct GameState {
     // But we don't have ui struct
     push_conf: PushForceConfig,
     pull_conf: PullForceConfig,
+
+    algorithm: Option<Box<dyn ShowAlgorithm>>,
 }
 
 impl GameState {
@@ -47,6 +53,7 @@ impl GameState {
                 min_distance: 100.,
                 force_at_twice_distance: 500.,
             },
+            algorithm: None,
         })
     }
 }
@@ -58,7 +65,13 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         egui_ctx: &egui::CtxRef,
     ) -> Result<(), Box<dyn Error>> {
         self.graph
-            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)
+            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)?;
+
+        if let Some(alg) = &mut self.algorithm {
+            alg.update(ctx, &mut self.graph);
+        }
+
+        Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
@@ -119,6 +132,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 ui.label("Min Distance");
                 ui.add(egui::DragValue::new(&mut self.pull_conf.min_distance));
             });
+            if ui.button("dfs").clicked() {
+                self.algorithm = Some(Box::new(Dfs::new()));
+                if let Some(idx) = self.graph.node_indices().next() {
+                    if let Some(algo) = &mut self.algorithm {
+                        algo.deref_mut().run_algorithm(&mut self.graph, idx);
+                    }
+                }
+            }
         });
         Ok(())
     }

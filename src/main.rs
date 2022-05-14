@@ -1,11 +1,14 @@
-use egui_tetra::StateWrapper;
-use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use std::error::Error;
+
+use egui_tetra::StateWrapper;
 use tetra::ContextBuilder;
 
-mod game_state;
+use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
+
 pub use crate::game_state::GameState;
 
+mod algo;
+mod game_state;
 mod graph;
 mod input;
 

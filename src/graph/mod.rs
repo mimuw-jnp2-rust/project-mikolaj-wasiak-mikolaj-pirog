@@ -1,17 +1,19 @@
+use std::error::Error;
+
 use petgraph::{
     graph::NodeIndex,
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
-use std::error::Error;
 use tetra::Context;
 
-pub mod edge;
-pub mod node;
 use edge::Edge;
 use node::Node;
 
 use self::{edge::PullForceConfig, node::PushForceConfig};
+
+pub mod edge;
+pub mod node;
 
 pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = tetra::math::Vec2<f32>;
@@ -42,20 +44,20 @@ pub trait GraphOnCanvas {
 
     fn push_force(
         &mut self,
-        ctx: &mut tetra::Context,
+        ctx: &mut Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
         push_conf: &PushForceConfig,
     );
     fn pull_force(
         &mut self,
-        ctx: &mut tetra::Context,
+        ctx: &mut Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
         pull_conf: &PullForceConfig,
     );
 
     fn update(
         &mut self,
-        ctx: &mut tetra::Context,
+        ctx: &mut Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
@@ -130,8 +132,8 @@ impl GraphOnCanvas for Graph {
 
     fn push_force(
         &mut self,
-        ctx: &mut tetra::Context,
-        egui_ctx: &egui_tetra::egui::CtxRef,
+        _ctx: &mut Context,
+        _egui_ctx: &egui_tetra::egui::CtxRef,
         push_conf: &PushForceConfig,
     ) {
         for idx in self.node_indices() {
@@ -169,7 +171,7 @@ impl GraphOnCanvas for Graph {
 
     fn update(
         &mut self,
-        ctx: &mut tetra::Context,
+        ctx: &mut Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
