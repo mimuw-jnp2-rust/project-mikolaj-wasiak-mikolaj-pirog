@@ -84,12 +84,10 @@ impl InputState {
 
 impl PartialEq for InputState {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (InputState::Add, InputState::Add) => true,
-            (InputState::Remove, InputState::Remove) => true,
-            (InputState::Move(_), InputState::Move(_)) => true,
-            (InputState::Connect(_), InputState::Connect(_)) => true,
-            _ => false,
-        }
+        matches!((self, other),
+          (InputState::Add, InputState::Add) |
+          (InputState::Remove, InputState::Remove) |
+          (InputState::Move, InputState::Move) |
+          (InputState::Connect(_), InputState::Connect(_)))
     }
 }
