@@ -11,6 +11,8 @@ pub mod node;
 use edge::Edge;
 use node::Node;
 
+use self::{edge::PullForceConfig, node::PushForceConfig};
+
 pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = tetra::math::Vec2<f32>;
 
@@ -38,13 +40,25 @@ pub trait GraphOnCanvas {
         direction: petgraph::EdgeDirection,
     ) -> Result<(), Box<dyn Error>>;
 
-    fn repel_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef);
-    fn pull_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef);
+    fn push_force(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
+        push_conf: &PushForceConfig,
+    );
+    fn pull_force(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
+        pull_conf: &PullForceConfig,
+    );
 
     fn update(
         &mut self,
         ctx: &mut tetra::Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
+        push_conf: &PushForceConfig,
+        pull_conf: &PullForceConfig,
     ) -> Result<(), Box<dyn Error>>;
 }
 
@@ -114,7 +128,12 @@ impl GraphOnCanvas for Graph {
         Ok(())
     }
 
-    fn repel_force(&mut self, ctx: &mut tetra::Context, egui_ctx: &egui_tetra::egui::CtxRef) {
+    fn push_force(
+        &mut self,
+        ctx: &mut tetra::Context,
+        egui_ctx: &egui_tetra::egui::CtxRef,
+        push_conf: &PushForceConfig,
+    ) {
         for idx in self.node_indices() {
             for other_idx in self.node_indices() {
                 if idx == other_idx {
@@ -124,20 +143,25 @@ impl GraphOnCanvas for Graph {
                     .map(|other_node| other_node.position())
                     .map(|other_pos| {
                         self.node_weight_mut(idx)
-                            .map(|node| node.repel_from_point(other_pos))
+                            .map(|node| node.push_away_from_point(other_pos, push_conf))
                     });
             }
         }
     }
 
-    fn pull_force(&mut self, _ctx: &mut tetra::Context, _egui_ctx: &egui_tetra::egui::CtxRef) {
+    fn pull_force(
+        &mut self,
+        _ctx: &mut tetra::Context,
+        _egui_ctx: &egui_tetra::egui::CtxRef,
+        pull_conf: &PullForceConfig,
+    ) {
         for idx in self.node_indices() {
             let mut result = Position::zero();
             for edge_in in self.edges_directed(idx, Incoming) {
-                result -= edge_in.weight().calculate_pull_force();
+                result -= edge_in.weight().calculate_pull_force(pull_conf);
             }
             for edge_out in self.edges_directed(idx, Outgoing) {
-                result += edge_out.weight().calculate_pull_force();
+                result += edge_out.weight().calculate_pull_force(pull_conf);
             }
             self.node_weight_mut(idx).map(|node| node.add_force(result));
         }
@@ -147,9 +171,11 @@ impl GraphOnCanvas for Graph {
         &mut self,
         ctx: &mut tetra::Context,
         egui_ctx: &egui_tetra::egui::CtxRef,
+        push_conf: &PushForceConfig,
+        pull_conf: &PullForceConfig,
     ) -> Result<(), Box<dyn Error>> {
-        self.repel_force(ctx, egui_ctx);
-        self.pull_force(ctx, egui_ctx);
+        self.push_force(ctx, egui_ctx, push_conf);
+        self.pull_force(ctx, egui_ctx, pull_conf);
         for node_idx in self.node_indices() {
             self.node_weight_mut(node_idx)
                 .map(|node| {

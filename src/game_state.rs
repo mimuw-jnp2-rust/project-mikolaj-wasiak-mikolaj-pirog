@@ -1,3 +1,5 @@
+use crate::graph::edge::PullForceConfig;
+use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use egui_tetra::egui;
@@ -17,6 +19,11 @@ pub struct GameState {
     pub input_state: InputState,
     pub camera: Camera,
     scaler: ScreenScaler,
+
+    // This maybe should be under ui struct
+    // But we don't have ui struct
+    push_conf: PushForceConfig,
+    pull_conf: PullForceConfig,
 }
 
 impl GameState {
@@ -32,6 +39,14 @@ impl GameState {
                 SCREEN_HEIGHT as i32,
                 ScalingMode::ShowAllPixelPerfect,
             )?,
+            push_conf: PushForceConfig {
+                force: 1000.,
+                distance: 150.,
+            },
+            pull_conf: PullForceConfig {
+                min_distance: 100.,
+                force_at_twice_distance: 500.,
+            },
         })
     }
 }
@@ -42,7 +57,8 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         ctx: &mut tetra::Context,
         egui_ctx: &egui::CtxRef,
     ) -> Result<(), Box<dyn Error>> {
-        self.graph.update(ctx, egui_ctx)
+        self.graph
+            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)
     }
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
@@ -81,6 +97,27 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                     InputState::Move(MoveData::default()),
                     "Move",
                 );
+            });
+            ui.heading("Forces");
+            ui.label("Push:");
+            ui.horizontal(|ui| {
+                ui.label("Value");
+                ui.add(egui::DragValue::new(&mut self.push_conf.force));
+            });
+            ui.horizontal(|ui| {
+                ui.label("Distance");
+                ui.add(egui::DragValue::new(&mut self.push_conf.distance));
+            });
+            ui.label("Pull:");
+            ui.horizontal(|ui| {
+                ui.label("Value");
+                ui.add(egui::DragValue::new(
+                    &mut self.pull_conf.force_at_twice_distance,
+                ));
+            });
+            ui.horizontal(|ui| {
+                ui.label("Min Distance");
+                ui.add(egui::DragValue::new(&mut self.pull_conf.min_distance));
             });
         });
         Ok(())
