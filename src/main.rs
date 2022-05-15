@@ -7,11 +7,12 @@ use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 pub use crate::game_state::GameState;
 
-mod algo;
-mod camera_event;
+mod camera_handling;
 mod game_state;
 mod graph;
 mod input;
+mod step_algorithms;
+mod ui;
 
 fn main() -> Result<(), Box<dyn Error>> {
     ContextBuilder::new("Graph vis", SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32)

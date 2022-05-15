@@ -44,16 +44,16 @@ impl InputState {
             InputState::Move(data) => match data.selected_node {
                 Some(node_idx) => {
                     data.selected_node = None;
-                    graph
-                        .node_weight_mut(node_idx)
-                        .map(|node| node.set_ignore_force(false));
+                    if let Some(node) = graph.node_weight_mut(node_idx) {
+                        node.set_ignore_force(false)
+                    }
                 }
                 None => {
                     data.selected_node = graph.get_node_from_point(position);
                     if let Some(node_idx) = data.selected_node {
-                        graph
-                            .node_weight_mut(node_idx)
-                            .map(|node| node.set_ignore_force(true));
+                        if let Some(node) = graph.node_weight_mut(node_idx) {
+                            node.set_ignore_force(true)
+                        }
                     }
                 }
             },
@@ -62,17 +62,17 @@ impl InputState {
                     graph
                         .get_node_from_point(position)
                         .map(|to| graph.connect_nodes(ctx, from, to));
-                    graph
-                        .node_weight_mut(from)
-                        .map(|node| node.set_highlight(NodeHighlight::Normal));
+                    if let Some(node) = graph.node_weight_mut(from) {
+                        node.set_highlight(NodeHighlight::Normal)
+                    }
 
                     data.from_node = None;
                 }
                 None => {
                     data.from_node = graph.get_node_from_point(position);
-                    data.from_node
-                        .and_then(|idx| graph.node_weight_mut(idx))
-                        .map(|node| node.set_highlight(NodeHighlight::Highlighted));
+                    if let Some(node) = data.from_node.and_then(|idx| graph.node_weight_mut(idx)) {
+                        node.set_highlight(NodeHighlight::Highlighted)
+                    }
                 }
             },
         }
@@ -85,12 +85,11 @@ impl InputState {
         graph: &mut Graph,
         position: Vec2<f32>,
     ) -> Result<(), Box<dyn Error>> {
-        match self {
-            InputState::Move(data) => match data.selected_node {
+        if let InputState::Move(data) = self {
+            match data.selected_node {
                 None => (),
                 Some(node_idx) => graph.move_node(ctx, node_idx, position)?,
-            },
-            _ => {}
+            }
         }
         Ok(())
     }

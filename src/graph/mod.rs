@@ -1,3 +1,5 @@
+use egui_tetra::egui::CtxRef;
+use egui_tetra::{egui, State};
 use std::error::Error;
 
 use petgraph::{
@@ -5,6 +7,7 @@ use petgraph::{
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
+use tetra::math::Vec2;
 use tetra::Context;
 
 use edge::Edge;
@@ -62,6 +65,13 @@ pub trait GraphOnCanvas {
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
     ) -> Result<(), Box<dyn Error>>;
+
+    fn draw(
+        &mut self,
+        mouse_position: Vec2<f32>,
+        ctx: &mut Context,
+        egui_ctx: &egui::CtxRef,
+    ) -> Result<(), Box<dyn Error>>;
 }
 
 impl GraphOnCanvas for Graph {
@@ -98,9 +108,9 @@ impl GraphOnCanvas for Graph {
         idx: NodeIndex,
         to: Position,
     ) -> Result<(), Box<dyn Error>> {
-        self.node_weight_mut(idx).map(|node| {
+        if let Some(node) = self.node_weight_mut(idx) {
             node.set_position(to);
-        });
+        }
         self.update_edges_position(ctx, idx, to, Outgoing)?;
         self.update_edges_position(ctx, idx, to, Incoming)?;
 
@@ -188,6 +198,23 @@ impl GraphOnCanvas for Graph {
                 })
                 .map(|pos| self.move_node(ctx, node_idx, pos));
         }
+        Ok(())
+    }
+
+    fn draw(
+        &mut self,
+        mouse_position: Vec2<f32>,
+        ctx: &mut Context,
+        egui_ctx: &CtxRef,
+    ) -> Result<(), Box<dyn Error>> {
+        for edge in self.edge_weights_mut() {
+            edge.draw(ctx, egui_ctx)?;
+        }
+
+        for node in self.node_weights_mut() {
+            node.draw(ctx, egui_ctx, mouse_position)?;
+        }
+
         Ok(())
     }
 }
