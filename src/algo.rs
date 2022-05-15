@@ -1,15 +1,13 @@
 use std::collections::VecDeque;
 
-use petgraph::graph::{Node, NodeIndex};
+use petgraph::graph::{EdgeIndex, NodeIndex};
 use petgraph::Direction;
-use tetra::graphics::Color;
 use tetra::Context;
 
 use crate::graph::node::NodeState;
-use crate::graph::{Graph, GraphOnCanvas};
+use crate::graph::Graph;
 
 // Heheszki
-const FUNNY_COLOR: Color = Color::rgb(2137., 2137., 2137.);
 
 pub struct NodeStep {
     idx: NodeIndex,
@@ -22,8 +20,13 @@ impl NodeStep {
     }
 }
 
+pub struct EdgeStep {
+    idx: EdgeIndex,
+}
+
 pub enum AlgorithmStep {
     Node(NodeStep),
+    Edge(EdgeStep),
 }
 
 pub struct Timer {
@@ -79,6 +82,7 @@ impl Timer {
 pub struct Dfs {
     steps: VecDeque<AlgorithmStep>,
     timer: Timer,
+    start_idx: NodeIndex,
 }
 
 impl Dfs {
@@ -96,10 +100,15 @@ impl Dfs {
             .neighbors_directed(node_index, Direction::Outgoing)
             .detach();
 
-        while let Some(other_idx) = walker.next_node(graph) {
-            if let Some(other_state) = graph.node_weight(other_idx).map(|node| node.get_state()) {
+        while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
+            if let Some(other_state) = graph
+                .node_weight(other_node_idx)
+                .map(|node| node.get_state())
+            {
                 if matches!(other_state, NodeState::NotVisited) {
-                    self.dfs_helper(graph, other_idx);
+                    self.steps
+                        .push_back(AlgorithmStep::Edge(EdgeStep { idx: edge_idx }));
+                    self.dfs_helper(graph, other_node_idx);
                 }
             }
         }
@@ -122,6 +131,7 @@ impl Dfs {
         Dfs {
             steps: VecDeque::new(),
             timer: Timer::new(1.0, true),
+            start_idx: NodeIndex::new(0),
         }
     }
 }
@@ -133,17 +143,25 @@ pub trait ShowAlgorithm {
 
 impl ShowAlgorithm for Dfs {
     fn run_algorithm(&mut self, graph: &mut Graph, starting_node_idx: NodeIndex) {
+        self.start_idx = starting_node_idx;
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
 
-        self.dfs(graph, starting_node_idx);
+        self.dfs(graph, self.start_idx);
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
+        }
+        for edge in graph.edge_weights_mut() {
+            edge.enable_edge();
+            edge.disable_edge();
         }
 
         // TODO: To do oddzielnej funkcji?
         self.timer.start();
+        graph
+            .node_weight_mut(self.start_idx)
+            .map(|node| node.set_ignore_force(true));
     }
 
     fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
@@ -156,9 +174,17 @@ impl ShowAlgorithm for Dfs {
                             node.set_state(step.to_state)
                         }
                     }
+                    AlgorithmStep::Edge(step) => {
+                        if let Some(edge) = graph.edge_weight_mut(step.idx) {
+                            edge.enable_edge();
+                        }
+                    }
                 }
             } else {
                 self.timer.stop();
+                graph
+                    .node_weight_mut(self.start_idx)
+                    .map(|node| node.set_ignore_force(false));
             }
         }
     }

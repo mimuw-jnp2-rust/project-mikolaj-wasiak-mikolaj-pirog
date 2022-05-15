@@ -16,6 +16,7 @@ pub struct Edge {
     from: Position,
     to: Position,
     color: Color,
+    enabled: bool,
 
     shape: Mesh,
 }
@@ -54,6 +55,7 @@ impl Edge {
             to,
             color: Color::BLACK,
             shape: Edge::create_arrow(ctx, from, to)?,
+            enabled: true,
         })
     }
 
@@ -69,6 +71,16 @@ impl Edge {
         Ok(())
     }
 
+    pub fn disable_edge(&mut self) {
+        self.enabled = false;
+        self.color.a = 0.5;
+    }
+
+    pub fn enable_edge(&mut self) {
+        self.enabled = true;
+        self.color.a = 1.0;
+    }
+
     fn get_draw_params(&self) -> DrawParams {
         DrawParams::new()
             .position(Position::zero())
@@ -76,6 +88,9 @@ impl Edge {
     }
 
     pub fn calculate_pull_force(&self, config: &PullForceConfig) -> Position {
+        if !self.enabled {
+            return Position::zero();
+        }
         let distance = self.from.distance(self.to);
         if distance < config.min_distance {
             Position::zero()

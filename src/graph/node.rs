@@ -35,6 +35,7 @@ pub struct Node {
     algorithm_state: NodeState,
 
     current_force: Position,
+    ignore_force: bool,
 
     // To change colors this has to be separate
     circle: Mesh,
@@ -54,6 +55,7 @@ impl Node {
             border_color: Color::BLACK,
             color: Color::WHITE,
             current_force: Position::zero(),
+            ignore_force: false,
             border: Mesh::circle(
                 ctx,
                 ShapeStyle::Stroke(BASE_BORDER_SIZE),
@@ -109,6 +111,9 @@ impl Node {
     }
 
     pub fn consume_force(&mut self, ctx: &mut Context) {
+        if self.ignore_force {
+            return;
+        }
         self.position += self.current_force * tetra::time::get_delta_time(ctx).as_secs_f32();
         self.current_force = Position::zero();
     }
@@ -149,5 +154,10 @@ impl Node {
             "New color {}, {}, {}",
             self.color.r, self.color.g, self.color.b
         );
+    }
+
+    pub fn set_ignore_force(&mut self, value: bool) {
+        self.ignore_force = value;
+        self.current_force = Position::zero();
     }
 }
