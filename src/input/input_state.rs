@@ -42,8 +42,20 @@ impl InputState {
                     .map(|idx| graph.remove_node(idx));
             }
             InputState::Move(data) => match data.selected_node {
-                Some(_) => data.selected_node = None,
-                None => data.selected_node = graph.get_node_from_point(position),
+                Some(node_idx) => {
+                    data.selected_node = None;
+                    graph
+                        .node_weight_mut(node_idx)
+                        .map(|node| node.set_ignore_force(false));
+                }
+                None => {
+                    data.selected_node = graph.get_node_from_point(position);
+                    if let Some(node_idx) = data.selected_node {
+                        graph
+                            .node_weight_mut(node_idx)
+                            .map(|node| node.set_ignore_force(true));
+                    }
+                }
             },
             InputState::Connect(data) => match data.from_node {
                 Some(from) => {
