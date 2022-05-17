@@ -73,7 +73,7 @@ impl Edge {
 
     pub fn disable_edge(&mut self) {
         self.enabled = false;
-        self.color.a = 0.5;
+        self.color.a = 0.2;
     }
 
     pub fn enable_edge(&mut self) {

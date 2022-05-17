@@ -1,9 +1,8 @@
 use std::error::Error;
-use std::ops::{Add, AddAssign};
-use std::ops::{Deref, DerefMut};
+use std::ops::{DerefMut};
 
 use egui_tetra::egui;
-use egui_tetra::egui::{CtxRef, Vec2};
+use egui_tetra::egui::{CtxRef};
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::{self, Camera, Color, Texture};
 use tetra::input::{Key, MouseButton};
@@ -12,7 +11,6 @@ use tetra::Context;
 use crate::algo::{Dfs, ShowAlgorithm};
 use crate::camera_event;
 use crate::graph::edge::PullForceConfig;
-use crate::graph::node::Node;
 use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{ConnectData, InputState, MoveData};
@@ -158,7 +156,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 self.camera.mouse_position(ctx),
             )?;
         }
-        camera_event::handle_camera_events(self, event);
+        camera_event::handle_camera_events(self, event)?;
 
         Ok(())
     }

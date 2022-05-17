@@ -15,6 +15,7 @@ mod input;
 
 fn main() -> Result<(), Box<dyn Error>> {
     ContextBuilder::new("Graph vis", SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32)
+        .resizable(true)
         .show_mouse(true)
         .quit_on_escape(true)
         .build()?

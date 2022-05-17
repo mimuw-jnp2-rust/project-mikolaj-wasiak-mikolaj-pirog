@@ -7,8 +7,6 @@ use tetra::Context;
 use crate::graph::node::NodeState;
 use crate::graph::Graph;
 
-// Heheszki
-
 pub struct NodeStep {
     idx: NodeIndex,
     to_state: NodeState,
@@ -130,7 +128,7 @@ impl Dfs {
     pub fn new() -> Dfs {
         Dfs {
             steps: VecDeque::new(),
-            timer: Timer::new(1.0, true),
+            timer: Timer::new(0.5, true),
             start_idx: NodeIndex::new(0),
         }
     }
