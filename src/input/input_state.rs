@@ -76,6 +76,7 @@ impl InputState {
                 }
             },
         }
+
         Ok(())
     }
 
@@ -91,6 +92,7 @@ impl InputState {
                 Some(node_idx) => graph.move_node(ctx, node_idx, position)?,
             }
         }
+
         Ok(())
     }
 }

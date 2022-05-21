@@ -3,17 +3,20 @@ use std::error::Error;
 use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
-use tetra::graphics::{self, Camera, Color, Texture};
-use tetra::input::{Key, MouseButton};
+use tetra::graphics::{self, Camera, Color};
+use tetra::input::MouseButton;
 use tetra::Context;
 
-use crate::camera_handling::camera_handling::CameraHandling;
-use crate::graph::edge::PullForceConfig;
+use crate::camera_handling::camera_state::CameraState;
+use crate::graph::edge::{
+    PullForceConfig, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE,
+    PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE,
+};
 
 use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
-use crate::input::input_state::{ConnectData, InputState, MoveData};
-use crate::step_algorithms::step_algorithms::Algorithm;
+use crate::input::input_state::InputState;
+use crate::step_algorithms::algorithm::Algorithm;
 use crate::ui::ui::graph_params_editor_ui;
 
 pub const SCREEN_WIDTH: f32 = 640.;
@@ -46,12 +49,12 @@ impl GameState {
                 ScalingMode::ShowAllPixelPerfect,
             )?,
             push_conf: PushForceConfig {
-                force: 1000.,
-                distance: 150.,
+                force: PUSH_FORCE_FORCE,
+                distance: PUSH_FORCE_DISTANCE,
             },
             pull_conf: PullForceConfig {
-                min_distance: 100.,
-                force_at_twice_distance: 500.,
+                min_distance: PULL_FORCE_MIN_DISTANCE,
+                force_at_twice_distance: PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
             },
             algorithm: None,
         })
@@ -61,6 +64,7 @@ impl GameState {
 impl egui_tetra::State<Box<dyn Error>> for GameState {
     fn ui(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graph_params_editor_ui(self, ctx, egui_ctx);
+
         Ok(())
     }
 
@@ -72,9 +76,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             alg.update(ctx, &mut self.graph);
         }
 
-        self.camera.update_camera_transofrmation(ctx);
-
-        Ok(())
+        self.camera.update_camera_transformation(ctx)
     }
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
@@ -116,8 +118,6 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             )?;
         }
 
-        self.camera.handle_camera_events(event);
-
-        Ok(())
+        self.camera.handle_camera_events(event)
     }
 }

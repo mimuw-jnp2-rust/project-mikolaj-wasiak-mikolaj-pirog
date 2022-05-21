@@ -12,6 +12,12 @@ const BASE_STROKE_WIDTH: f32 = 5.;
 const BASE_ARROW_SCALE: f32 = 0.7;
 const BASE_ARROW_ARMS_SIZE: f32 = 25.;
 
+pub const PUSH_FORCE_FORCE: f32 = 1000.;
+pub const PUSH_FORCE_DISTANCE: f32 = 150.;
+
+pub const PULL_FORCE_MIN_DISTANCE: f32 = 100.;
+pub const PULL_FORCE_FORCE_AT_TWICE_DISTANCE: f32 = 500.;
+
 pub struct Edge {
     from: Position,
     to: Position,
@@ -41,6 +47,7 @@ impl Edge {
         let right_arrow_point =
             (to - from).rotated_z(-PI * 3. / 4.).normalized() * BASE_ARROW_ARMS_SIZE + to;
         let mut builder = GeometryBuilder::new();
+
         builder.polyline(BASE_STROKE_WIDTH, &[from, to])?;
         builder.polyline(
             BASE_STROKE_WIDTH,
@@ -68,6 +75,7 @@ impl Edge {
         self.from = from;
         self.to = to;
         self.shape = Edge::create_arrow(ctx, from, to)?;
+
         Ok(())
     }
 
@@ -91,7 +99,9 @@ impl Edge {
         if !self.enabled {
             return Position::zero();
         }
+
         let distance = self.from.distance(self.to);
+
         if distance < config.min_distance {
             Position::zero()
         } else {
@@ -103,6 +113,11 @@ impl Edge {
     }
 }
 
+// todo think if this should be a tetra state. I believe we should implement a
+// trait Drawable that will require a drawing function from a struct.
+// Using tetra's State seems like a overkill, because we have to implement
+// dummy functions we never used, just to satisfy the constraint.
+// It seems like there is no benefit in using tetra's state, other than consistency and using libary feature
 impl State<Box<dyn Error>> for Edge {
     fn update(
         &mut self,
@@ -118,6 +133,7 @@ impl State<Box<dyn Error>> for Edge {
         _egui_ctx: &egui_tetra::egui::CtxRef,
     ) -> Result<(), Box<dyn Error>> {
         self.shape.draw(ctx, self.get_draw_params());
+
         Ok(())
     }
 }

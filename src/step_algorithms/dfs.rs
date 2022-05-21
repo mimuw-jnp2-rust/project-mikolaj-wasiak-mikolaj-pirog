@@ -1,18 +1,18 @@
 use crate::graph::node::NodeState;
 use crate::graph::Graph;
-use crate::step_algorithms::step_algorithms::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
+use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
 
 pub trait Dfs {
-    fn dfs(&mut self, graph: &mut Graph, node_index: NodeIndex);
+    fn dfs(&mut self, graph: &mut Graph);
     fn dfs_helper(&mut self, graph: &mut Graph, node_index: NodeIndex);
-    fn show_dfs(&mut self, graph: &mut Graph, starting_node_idx: NodeIndex);
+    fn show_dfs(&mut self, graph: &mut Graph);
 }
 
 impl Dfs for Algorithm {
-    fn dfs(&mut self, graph: &mut Graph, node_index: NodeIndex) {
-        self.dfs_helper(graph, node_index);
+    fn dfs(&mut self, graph: &mut Graph) {
+        self.dfs_helper(graph, self.start_idx);
     }
 
     fn dfs_helper(&mut self, graph: &mut Graph, node_index: NodeIndex) {
@@ -52,16 +52,18 @@ impl Dfs for Algorithm {
         }
     }
 
-    fn show_dfs(&mut self, graph: &mut Graph, starting_node_idx: NodeIndex) {
-        self.start_idx = starting_node_idx;
+    fn show_dfs(&mut self, graph: &mut Graph) {
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
 
-        self.dfs(graph, self.start_idx);
+        self.dfs(graph);
+
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
+
+        // those lines allow node to move while the algorithm is being showcased.
         for edge in graph.edge_weights_mut() {
             edge.enable_edge();
             edge.disable_edge();

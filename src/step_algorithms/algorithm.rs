@@ -1,12 +1,10 @@
 use std::collections::VecDeque;
 
 use petgraph::graph::{EdgeIndex, NodeIndex};
-use petgraph::Direction;
 use tetra::Context;
 
 use crate::graph::node::NodeState;
 use crate::graph::Graph;
-use crate::step_algorithms::dfs::Dfs;
 use crate::step_algorithms::timer::Timer;
 
 pub struct Algorithm {
@@ -62,6 +60,7 @@ impl Algorithm {
                 }
             } else {
                 self.timer.stop();
+
                 if let Some(node) = graph.node_weight_mut(self.start_idx) {
                     node.set_ignore_force(false)
                 }

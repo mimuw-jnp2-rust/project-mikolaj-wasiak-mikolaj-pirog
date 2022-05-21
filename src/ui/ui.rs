@@ -1,7 +1,7 @@
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
+use crate::step_algorithms::algorithm::Algorithm;
 use crate::step_algorithms::dfs::Dfs;
-use crate::step_algorithms::step_algorithms::Algorithm;
 use crate::GameState;
 use egui_tetra::egui;
 use petgraph::graph::NodeIndex;
@@ -54,9 +54,9 @@ pub fn graph_params_editor_ui(
         });
         if ui.button("dfs").clicked() {
             if let Some(idx) = game_state.graph.node_indices().next() {
-                game_state.algorithm = Some(Algorithm::new(idx.clone()));
+                game_state.algorithm = Some(Algorithm::new(idx));
                 if let Some(algo) = &mut game_state.algorithm {
-                    algo.show_dfs(&mut game_state.graph, idx);
+                    algo.show_dfs(&mut game_state.graph);
                 }
             }
         }
