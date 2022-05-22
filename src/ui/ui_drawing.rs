@@ -3,7 +3,6 @@ use egui_tetra::egui;
 use crate::GameState;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::algorithm::Algorithm;
-use crate::step_algorithms::dfs::Dfs;
 
 pub fn graph_params_editor_ui(
     game_state: &mut GameState,

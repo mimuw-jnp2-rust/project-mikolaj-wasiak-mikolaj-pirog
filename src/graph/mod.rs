@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use egui_tetra::{State};
+use egui_tetra::State;
 use egui_tetra::egui::CtxRef;
 use petgraph::{
     Directed,

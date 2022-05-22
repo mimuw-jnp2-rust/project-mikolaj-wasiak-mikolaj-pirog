@@ -94,8 +94,8 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
     fn event(
         &mut self,
-        ctx: &mut tetra::Context,
-        _egui_ctx: &egui::CtxRef,
+        ctx: &mut Context,
+        _egui_ctx: &CtxRef,
         event: tetra::Event,
     ) -> Result<(), Box<dyn Error>> {
         if let tetra::Event::MouseMoved { .. } = &event {

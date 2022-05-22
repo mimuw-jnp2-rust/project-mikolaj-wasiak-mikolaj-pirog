@@ -5,19 +5,13 @@ use crate::graph::Graph;
 use crate::graph::node::NodeState;
 use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
 
-pub trait Dfs {
-    fn dfs(&mut self, graph: &mut Graph);
-    fn dfs_helper(&mut self, graph: &mut Graph, node_index: NodeIndex);
-    fn show_dfs(&mut self, graph: &mut Graph);
-}
-
-impl Dfs for Algorithm {
+impl Algorithm {
     fn dfs(&mut self, graph: &mut Graph) {
-        self.dfs_helper(graph, self.start_idx);
+        self.dfs_helper(graph, self.start_idx());
     }
 
     fn dfs_helper(&mut self, graph: &mut Graph, node_index: NodeIndex) {
-        self.steps.push_back(AlgorithmStep::Node(NodeStep::new(
+        self.add_step(AlgorithmStep::Node(NodeStep::new(
             node_index,
             NodeState::Queued,
         )));
@@ -36,14 +30,13 @@ impl Dfs for Algorithm {
                 .map(|node| node.get_state())
             {
                 if matches!(other_state, NodeState::NotVisited) {
-                    self.steps
-                        .push_back(AlgorithmStep::Edge(EdgeStep { idx: edge_idx }));
+                    self.add_step(AlgorithmStep::Edge(EdgeStep { idx: edge_idx }));
                     self.dfs_helper(graph, other_node_idx);
                 }
             }
         }
 
-        self.steps.push_back(AlgorithmStep::Node(NodeStep::new(
+        self.add_step(AlgorithmStep::Node(NodeStep::new(
             node_index,
             NodeState::Visited,
         )));
@@ -53,7 +46,7 @@ impl Dfs for Algorithm {
         }
     }
 
-    fn show_dfs(&mut self, graph: &mut Graph) {
+    pub fn show_dfs(&mut self, graph: &mut Graph) {
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
@@ -70,10 +63,7 @@ impl Dfs for Algorithm {
             edge.disable_edge();
         }
 
-        // todo: To do oddzielnej funkcji?
-        self.timer.start();
-        if let Some(node) = graph.node_weight_mut(self.start_idx) {
-            node.set_ignore_force(true)
-        }
+        self.start_timer();
+        self.turn_off_start_node_gravity(graph);
     }
 }

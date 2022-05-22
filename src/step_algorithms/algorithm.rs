@@ -8,9 +8,9 @@ use crate::graph::node::NodeState;
 use crate::step_algorithms::timer::Timer;
 
 pub struct Algorithm {
-    pub(crate) steps: VecDeque<AlgorithmStep>,
-    pub(crate) timer: Timer,
-    pub(crate) start_idx: NodeIndex,
+    steps: VecDeque<AlgorithmStep>,
+    timer: Timer,
+    start_idx: NodeIndex,
 }
 
 pub struct NodeStep {
@@ -67,4 +67,23 @@ impl Algorithm {
             }
         }
     }
+
+    pub fn start_idx(&self) -> NodeIndex {
+        self.start_idx
+    }
+
+    pub fn add_step(&mut self, algo_step: AlgorithmStep) {
+        self.steps.push_back(algo_step);
+    }
+
+    pub fn start_timer(&mut self) {
+        self.timer.start();
+    }
+
+    pub fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
+        if let Some(node) = graph.node_weight_mut(self.start_idx) {
+            node.set_ignore_force(true)
+        }
+    }
+
 }
