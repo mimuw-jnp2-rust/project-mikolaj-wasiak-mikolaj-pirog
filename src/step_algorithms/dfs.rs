@@ -1,8 +1,9 @@
-use crate::graph::node::NodeState;
-use crate::graph::Graph;
-use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
-use petgraph::graph::NodeIndex;
 use petgraph::Direction;
+use petgraph::graph::NodeIndex;
+
+use crate::graph::Graph;
+use crate::graph::node::NodeState;
+use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
 
 pub trait Dfs {
     fn dfs(&mut self, graph: &mut Graph);

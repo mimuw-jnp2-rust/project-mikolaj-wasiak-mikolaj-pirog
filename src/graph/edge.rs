@@ -2,9 +2,9 @@ use std::error::Error;
 use std::f32::consts::PI;
 
 use egui_tetra::State;
-use tetra::graphics::mesh::GeometryBuilder;
-use tetra::graphics::{mesh::Mesh, Color, DrawParams};
 use tetra::Context;
+use tetra::graphics::{Color, DrawParams, mesh::Mesh};
+use tetra::graphics::mesh::GeometryBuilder;
 
 use super::Position;
 

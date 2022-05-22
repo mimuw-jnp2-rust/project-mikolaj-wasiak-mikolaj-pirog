@@ -1,15 +1,14 @@
-use egui_tetra::egui::CtxRef;
-use egui_tetra::{egui, State};
 use std::error::Error;
 
+use egui_tetra::{State};
+use egui_tetra::egui::CtxRef;
 use petgraph::{
-    graph::NodeIndex,
     Directed,
     EdgeDirection::{Incoming, Outgoing},
+    graph::NodeIndex,
 };
-
-use tetra::math::Vec2;
 use tetra::Context;
+use tetra::math::Vec2;
 
 use edge::Edge;
 use node::Node;

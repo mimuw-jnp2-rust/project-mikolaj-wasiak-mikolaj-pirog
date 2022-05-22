@@ -2,22 +2,21 @@ use std::error::Error;
 
 use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
-use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
-use tetra::graphics::{self, Camera, Color};
-use tetra::input::MouseButton;
 use tetra::Context;
+use tetra::graphics::{self, Camera, Color};
+use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
+use tetra::input::MouseButton;
 
 use crate::camera_handling::camera_state::CameraState;
+use crate::graph::{Graph, GraphOnCanvas};
 use crate::graph::edge::{
-    PullForceConfig, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE,
+    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PullForceConfig,
     PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE,
 };
-
 use crate::graph::node::PushForceConfig;
-use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
 use crate::step_algorithms::algorithm::Algorithm;
-use crate::ui::ui::graph_params_editor_ui;
+use crate::ui::ui_drawing::graph_params_editor_ui;
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
@@ -62,8 +61,8 @@ impl GameState {
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
-    fn ui(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
-        graph_params_editor_ui(self, ctx, egui_ctx);
+    fn ui(&mut self, _ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
+        graph_params_editor_ui(self, egui_ctx);
 
         Ok(())
     }
@@ -84,7 +83,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
         self.graph
-            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx);
+            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx)?;
 
         graphics::reset_transform_matrix(ctx);
 

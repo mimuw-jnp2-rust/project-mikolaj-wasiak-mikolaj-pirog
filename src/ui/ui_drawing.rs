@@ -1,16 +1,12 @@
-use crate::graph::GraphOnCanvas;
+use egui_tetra::egui;
+
+use crate::GameState;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::algorithm::Algorithm;
 use crate::step_algorithms::dfs::Dfs;
-use crate::GameState;
-use egui_tetra::egui;
-use petgraph::graph::NodeIndex;
-use std::ops::DerefMut;
-use tetra::Context;
 
 pub fn graph_params_editor_ui(
     game_state: &mut GameState,
-    ctx: &mut Context,
     egui_ctx: &egui::CtxRef,
 ) {
     egui::Window::new("Graph editor").show(egui_ctx, |ui| {

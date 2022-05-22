@@ -1,9 +1,10 @@
-use crate::graph::Position;
-use crate::GameState;
 use std::error::Error;
+
+use tetra::Context;
 use tetra::graphics::Camera;
 use tetra::input::Key;
-use tetra::Context;
+
+use crate::graph::Position;
 
 const CAMERA_ZOOM_SPEED: f32 = 0.05;
 const Y_AXIS_MOVE_SPEED: f32 = 10.;

@@ -1,11 +1,11 @@
 use std::error::Error;
 
 use egui_tetra::egui;
-use tetra::graphics::mesh::ShapeStyle;
-use tetra::graphics::DrawParams;
-use tetra::graphics::{mesh::Mesh, Color};
-use tetra::math::Vec2;
 use tetra::Context;
+use tetra::graphics::{Color, mesh::Mesh};
+use tetra::graphics::DrawParams;
+use tetra::graphics::mesh::ShapeStyle;
+use tetra::math::Vec2;
 
 use super::Position;
 
