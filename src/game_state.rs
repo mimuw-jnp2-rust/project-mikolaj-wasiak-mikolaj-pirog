@@ -2,18 +2,15 @@ use std::error::Error;
 
 use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
-use tetra::Context;
-use tetra::graphics::{self, Camera, Color};
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
+use tetra::graphics::{self, Camera, Color};
 use tetra::input::MouseButton;
+use tetra::Context;
 
 use crate::camera_handling::camera_state::CameraState;
-use crate::graph::{Graph, GraphOnCanvas};
-use crate::graph::edge::{
-    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PullForceConfig,
-    PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE,
-};
+use crate::graph::edge::PullForceConfig;
 use crate::graph::node::PushForceConfig;
+use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
 use crate::step_algorithms::algorithm::Algorithm;
 use crate::ui::ui_drawing::graph_params_editor_ui;
@@ -47,14 +44,8 @@ impl GameState {
                 SCREEN_HEIGHT as i32,
                 ScalingMode::ShowAllPixelPerfect,
             )?,
-            push_conf: PushForceConfig {
-                force: PUSH_FORCE_FORCE,
-                distance: PUSH_FORCE_DISTANCE,
-            },
-            pull_conf: PullForceConfig {
-                min_distance: PULL_FORCE_MIN_DISTANCE,
-                force_at_twice_distance: PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
-            },
+            push_conf: PushForceConfig::new(),
+            pull_conf: PullForceConfig::new(),
             algorithm: None,
         })
     }

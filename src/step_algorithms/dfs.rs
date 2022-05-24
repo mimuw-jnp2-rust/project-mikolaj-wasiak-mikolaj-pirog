@@ -1,8 +1,8 @@
-use petgraph::Direction;
 use petgraph::graph::NodeIndex;
+use petgraph::Direction;
 
-use crate::graph::Graph;
 use crate::graph::node::NodeState;
+use crate::graph::Graph;
 use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
 
 impl Algorithm {

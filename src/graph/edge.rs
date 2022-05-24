@@ -2,9 +2,9 @@ use std::error::Error;
 use std::f32::consts::PI;
 
 use egui_tetra::State;
-use tetra::Context;
-use tetra::graphics::{Color, DrawParams, mesh::Mesh};
 use tetra::graphics::mesh::GeometryBuilder;
+use tetra::graphics::{mesh::Mesh, Color, DrawParams};
+use tetra::Context;
 
 use super::Position;
 
@@ -27,9 +27,27 @@ pub struct Edge {
     shape: Mesh,
 }
 
+#[derive(Default)]
 pub struct PullForceConfig {
-    pub min_distance: f32,
-    pub force_at_twice_distance: f32,
+    min_distance: f32,
+    force_at_twice_distance: f32,
+}
+
+impl PullForceConfig {
+    pub fn new() -> PullForceConfig {
+        PullForceConfig {
+            min_distance: PULL_FORCE_MIN_DISTANCE,
+            force_at_twice_distance: PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
+        }
+    }
+
+    pub fn min_distance(&self) -> f32 {
+        self.min_distance
+    }
+
+    pub fn force_at_twice_distance(&self) -> f32 {
+        self.force_at_twice_distance
+    }
 }
 
 impl Edge {

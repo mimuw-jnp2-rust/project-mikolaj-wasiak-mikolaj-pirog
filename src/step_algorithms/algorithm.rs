@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 use petgraph::graph::{EdgeIndex, NodeIndex};
 use tetra::Context;
 
-use crate::graph::Graph;
 use crate::graph::node::NodeState;
+use crate::graph::Graph;
 use crate::step_algorithms::timer::Timer;
 
 pub struct Algorithm {
@@ -85,5 +85,4 @@ impl Algorithm {
             node.set_ignore_force(true)
         }
     }
-
 }

@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use tetra::Context;
 use tetra::graphics::Camera;
 use tetra::input::Key;
+use tetra::Context;
 
 use crate::graph::Position;
 

@@ -1,12 +1,12 @@
 use std::error::Error;
 
 use petgraph::graph::NodeIndex;
-use tetra::Context;
 use tetra::math::Vec2;
+use tetra::Context;
 
-use crate::graph::{Graph, node::Node};
-use crate::graph::GraphOnCanvas;
 use crate::graph::node::NodeHighlight;
+use crate::graph::GraphOnCanvas;
+use crate::graph::{node::Node, Graph};
 
 #[derive(Default)]
 pub struct ConnectData {

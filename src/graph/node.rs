@@ -1,11 +1,12 @@
 use std::error::Error;
 
+use crate::graph::edge::{PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE};
 use egui_tetra::egui;
-use tetra::Context;
-use tetra::graphics::{Color, mesh::Mesh};
-use tetra::graphics::DrawParams;
 use tetra::graphics::mesh::ShapeStyle;
+use tetra::graphics::DrawParams;
+use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
+use tetra::Context;
 
 use super::Position;
 
@@ -42,9 +43,27 @@ pub struct Node {
     border: Mesh,
 }
 
+#[derive(Default)]
 pub struct PushForceConfig {
-    pub force: f32,
-    pub distance: f32,
+    force: f32,
+    distance: f32,
+}
+
+impl PushForceConfig {
+    pub fn new() -> PushForceConfig {
+        PushForceConfig {
+            force: PUSH_FORCE_FORCE,
+            distance: PUSH_FORCE_DISTANCE,
+        }
+    }
+
+    pub fn force(&self) -> f32 {
+        self.force
+    }
+
+    pub fn distance(&self) -> f32 {
+        self.distance
+    }
 }
 
 impl Node {
