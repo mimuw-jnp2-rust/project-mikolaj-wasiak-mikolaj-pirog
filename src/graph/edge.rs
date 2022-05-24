@@ -27,17 +27,16 @@ pub struct Edge {
     shape: Mesh,
 }
 
-#[derive(Default)]
 pub struct PullForceConfig {
     min_distance: f32,
     force_at_twice_distance: f32,
 }
 
 impl PullForceConfig {
-    pub fn new() -> PullForceConfig {
+    pub fn new(min_distance: f32, force_at_twice_distance: f32) -> PullForceConfig {
         PullForceConfig {
-            min_distance: PULL_FORCE_MIN_DISTANCE,
-            force_at_twice_distance: PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
+            min_distance,
+            force_at_twice_distance,
         }
     }
 

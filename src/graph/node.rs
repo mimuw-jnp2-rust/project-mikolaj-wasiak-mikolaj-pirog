@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use crate::graph::edge::{PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE};
 use egui_tetra::egui;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
@@ -50,11 +49,8 @@ pub struct PushForceConfig {
 }
 
 impl PushForceConfig {
-    pub fn new() -> PushForceConfig {
-        PushForceConfig {
-            force: PUSH_FORCE_FORCE,
-            distance: PUSH_FORCE_DISTANCE,
-        }
+    pub fn new(force: f32, distance: f32) -> PushForceConfig {
+        PushForceConfig { force, distance }
     }
 
     pub fn force(&self) -> f32 {

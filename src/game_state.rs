@@ -8,7 +8,10 @@ use tetra::input::MouseButton;
 use tetra::Context;
 
 use crate::camera_handling::camera_state::CameraState;
-use crate::graph::edge::PullForceConfig;
+use crate::graph::edge::{
+    PullForceConfig, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE,
+    PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE,
+};
 use crate::graph::node::PushForceConfig;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
@@ -44,8 +47,11 @@ impl GameState {
                 SCREEN_HEIGHT as i32,
                 ScalingMode::ShowAllPixelPerfect,
             )?,
-            push_conf: PushForceConfig::new(),
-            pull_conf: PullForceConfig::new(),
+            push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
+            pull_conf: PullForceConfig::new(
+                PULL_FORCE_MIN_DISTANCE,
+                PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
+            ),
             algorithm: None,
         })
     }
