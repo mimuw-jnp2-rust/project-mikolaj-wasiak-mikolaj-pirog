@@ -25,7 +25,18 @@ impl NodeStep {
 }
 
 pub struct EdgeStep {
-    pub(crate) idx: EdgeIndex,
+    idx: EdgeIndex,
+}
+
+impl EdgeStep {
+    pub fn new(idx: EdgeIndex) -> EdgeStep {
+        EdgeStep { idx }
+    }
+
+    // This is unused now, but will be later.
+    pub fn _idx(&self) -> EdgeIndex {
+        self.idx
+    }
 }
 
 pub enum AlgorithmStep {

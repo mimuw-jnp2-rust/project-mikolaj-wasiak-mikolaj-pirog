@@ -30,7 +30,7 @@ impl Algorithm {
                 .map(|node| node.get_state())
             {
                 if matches!(other_state, NodeState::NotVisited) {
-                    self.add_step(AlgorithmStep::Edge(EdgeStep { idx: edge_idx }));
+                    self.add_step(AlgorithmStep::Edge(EdgeStep::new(edge_idx)));
                     self.dfs_helper(graph, other_node_idx);
                 }
             }
@@ -57,7 +57,7 @@ impl Algorithm {
             node.set_state(NodeState::NotVisited);
         }
 
-        // those lines allow node to move while the algorithm is being showcased.
+        // Those lines allow node to move while the algorithm is being showcased.
         for edge in graph.edge_weights_mut() {
             edge.enable_edge();
             edge.disable_edge();

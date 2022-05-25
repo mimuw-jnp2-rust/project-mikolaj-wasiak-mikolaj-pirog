@@ -27,6 +27,7 @@ pub struct Edge {
     shape: Mesh,
 }
 
+#[derive(Clone, Copy)]
 pub struct PullForceConfig {
     min_distance: f32,
     force_at_twice_distance: f32,

@@ -27,31 +27,32 @@ pub fn graph_params_editor_ui(game_state: &mut GameState, egui_ctx: &egui::CtxRe
         ui.label("Push:");
         ui.horizontal(|ui| {
             ui.label("Value");
-            ui.add(egui::DragValue::new(&mut game_state.push_conf.force()));
+            ui.add(egui::DragValue::new(&mut game_state.push_conf().force()));
         });
         ui.horizontal(|ui| {
             ui.label("Distance");
-            ui.add(egui::DragValue::new(&mut game_state.push_conf.distance()));
+            ui.add(egui::DragValue::new(&mut game_state.push_conf().distance()));
         });
         ui.label("Pull:");
         ui.horizontal(|ui| {
             ui.label("Value");
             ui.add(egui::DragValue::new(
-                &mut game_state.pull_conf.force_at_twice_distance(),
+                &mut game_state.pull_conf().force_at_twice_distance(),
             ));
         });
         ui.horizontal(|ui| {
             ui.label("Min Distance");
             ui.add(egui::DragValue::new(
-                &mut game_state.pull_conf.min_distance(),
+                &mut game_state.pull_conf().min_distance(),
             ));
         });
         if ui.button("dfs").clicked() {
             if let Some(idx) = game_state.graph.node_indices().next() {
-                game_state.algorithm = Some(Algorithm::new(idx));
-                if let Some(algo) = &mut game_state.algorithm {
-                    algo.show_dfs(&mut game_state.graph);
-                }
+                let mut algorithm = Algorithm::new(idx);
+                algorithm.show_dfs(&mut game_state.graph);
+
+                game_state.add_algorithm(algorithm);
+             
             }
         }
     });

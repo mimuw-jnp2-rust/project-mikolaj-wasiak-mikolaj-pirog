@@ -23,16 +23,18 @@ pub const SCREEN_HEIGHT: f32 = 480.;
 
 pub struct GameState {
     pub graph: Graph,
+    // This is problematic to make nonpublic.
     pub input_state: InputState,
-    pub camera: Camera,
-    pub scaler: ScreenScaler,
+    camera: Camera,
+
+    scaler: ScreenScaler,
 
     // This maybe should be under ui struct
     // But we don't have ui struct
-    pub(crate) push_conf: PushForceConfig,
-    pub(crate) pull_conf: PullForceConfig,
+    push_conf: PushForceConfig,
+    pull_conf: PullForceConfig,
 
-    pub(crate) algorithm: Option<Algorithm>,
+    algorithm: Option<Algorithm>,
 }
 
 impl GameState {
@@ -55,6 +57,21 @@ impl GameState {
             algorithm: None,
         })
     }
+
+    pub fn add_algorithm(&mut self, algorithm: Algorithm) {
+        self.algorithm = Some(algorithm);
+    }
+
+    pub fn push_conf(&self) -> PushForceConfig {
+        self.push_conf
+    }
+
+    pub fn pull_conf(&self) -> PullForceConfig {
+        self.pull_conf
+    }
+
+
+
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {

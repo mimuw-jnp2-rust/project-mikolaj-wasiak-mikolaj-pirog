@@ -42,7 +42,7 @@ pub struct Node {
     border: Mesh,
 }
 
-#[derive(Default)]
+#[derive(Clone, Copy)]
 pub struct PushForceConfig {
     force: f32,
     distance: f32,
