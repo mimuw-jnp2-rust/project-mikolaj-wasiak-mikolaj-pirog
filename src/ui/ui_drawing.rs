@@ -1,10 +1,16 @@
 use egui_tetra::egui;
 
+use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::algorithm::Algorithm;
 use crate::GameState;
+use tetra::Context;
 
-pub fn graph_params_editor_ui(game_state: &mut GameState, egui_ctx: &egui::CtxRef) {
+pub fn graph_params_editor_ui(
+    game_state: &mut GameState,
+    ctx: &mut Context,
+    egui_ctx: &egui::CtxRef,
+) {
     egui::Window::new("Graph editor").show(egui_ctx, |ui| {
         ui.heading("Mode");
         ui.horizontal(|ui| {
@@ -52,6 +58,18 @@ pub fn graph_params_editor_ui(game_state: &mut GameState, egui_ctx: &egui::CtxRe
                 algorithm.show_dfs(&mut game_state.graph);
 
                 game_state.add_algorithm(algorithm);
+            }
+        }
+        // This is done dirty, just to be able to quickly build nontrivial graph.
+        if ui.button("clique").clicked() {
+            for node in game_state.graph.node_indices() {
+                for node_other in game_state.graph.node_indices() {
+                    if node != node_other {
+                        match game_state.graph.connect_nodes(ctx, node, node_other) {
+                            _ => (),
+                        }
+                    }
+                }
             }
         }
     });

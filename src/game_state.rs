@@ -72,8 +72,8 @@ impl GameState {
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
-    fn ui(&mut self, _ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
-        graph_params_editor_ui(self, egui_ctx);
+    fn ui(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
+        graph_params_editor_ui(self, ctx, egui_ctx);
 
         Ok(())
     }
