@@ -3,34 +3,38 @@ use std::error::Error;
 use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
-use tetra::graphics::{self, Camera, Color, Texture};
-use tetra::input::{Key, MouseButton};
+use tetra::graphics::{self, Camera, Color};
+use tetra::input::MouseButton;
 use tetra::Context;
 
-use crate::camera_handling::camera_handling::CameraHandling;
-use crate::graph::edge::PullForceConfig;
-
-use crate::graph::node::PushForceConfig;
+use crate::camera_handling::camera_state::CameraState;
+use crate::graph::edge::{
+    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
+    PUSH_FORCE_FORCE,
+};
+use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
-use crate::input::input_state::{ConnectData, InputState, MoveData};
-use crate::step_algorithms::step_algorithms::Algorithm;
-use crate::ui::ui::graph_params_editor_ui;
+use crate::input::input_state::InputState;
+use crate::step_algorithms::algorithm::Algorithm;
+use crate::ui::ui_drawing::graph_params_editor_ui;
 
 pub const SCREEN_WIDTH: f32 = 640.;
 pub const SCREEN_HEIGHT: f32 = 480.;
 
 pub struct GameState {
     pub graph: Graph,
+    // This is problematic to make nonpublic.
     pub input_state: InputState,
-    pub camera: Camera,
-    pub scaler: ScreenScaler,
+    camera: Camera,
+
+    scaler: ScreenScaler,
 
     // This maybe should be under ui struct
     // But we don't have ui struct
-    pub(crate) push_conf: PushForceConfig,
-    pub(crate) pull_conf: PullForceConfig,
+    push_conf: PushForceConfig,
+    pull_conf: PullForceConfig,
 
-    pub(crate) algorithm: Option<Algorithm>,
+    algorithm: Option<Algorithm>,
 }
 
 impl GameState {
@@ -45,22 +49,32 @@ impl GameState {
                 SCREEN_HEIGHT as i32,
                 ScalingMode::ShowAllPixelPerfect,
             )?,
-            push_conf: PushForceConfig {
-                force: 1000.,
-                distance: 150.,
-            },
-            pull_conf: PullForceConfig {
-                min_distance: 100.,
-                force_at_twice_distance: 500.,
-            },
+            push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
+            pull_conf: PullForceConfig::new(
+                PULL_FORCE_MIN_DISTANCE,
+                PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
+            ),
             algorithm: None,
         })
+    }
+
+    pub fn add_algorithm(&mut self, algorithm: Algorithm) {
+        self.algorithm = Some(algorithm);
+    }
+
+    pub fn push_conf(&self) -> PushForceConfig {
+        self.push_conf
+    }
+
+    pub fn pull_conf(&self) -> PullForceConfig {
+        self.pull_conf
     }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
-    fn ui(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
+    fn ui(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
         graph_params_editor_ui(self, ctx, egui_ctx);
+
         Ok(())
     }
 
@@ -72,9 +86,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             alg.update(ctx, &mut self.graph);
         }
 
-        self.camera.update_camera_transofrmation(ctx);
-
-        Ok(())
+        self.camera.update_camera_transformation(ctx)
     }
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
@@ -82,7 +94,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
         self.graph
-            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx);
+            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx)?;
 
         graphics::reset_transform_matrix(ctx);
 
@@ -93,8 +105,8 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
     fn event(
         &mut self,
-        ctx: &mut tetra::Context,
-        _egui_ctx: &egui::CtxRef,
+        ctx: &mut Context,
+        _egui_ctx: &CtxRef,
         event: tetra::Event,
     ) -> Result<(), Box<dyn Error>> {
         if let tetra::Event::MouseMoved { .. } = &event {
@@ -116,8 +128,6 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             )?;
         }
 
-        self.camera.handle_camera_events(event);
-
-        Ok(())
+        self.camera.handle_camera_events(event)
     }
 }

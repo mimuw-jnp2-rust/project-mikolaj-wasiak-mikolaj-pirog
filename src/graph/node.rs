@@ -7,6 +7,7 @@ use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
 
+use super::gravity::PushForceConfig;
 use super::Position;
 
 const BASE_RADIUS: f32 = 20.;
@@ -40,11 +41,6 @@ pub struct Node {
     // To change colors this has to be separate
     circle: Mesh,
     border: Mesh,
-}
-
-pub struct PushForceConfig {
-    pub force: f32,
-    pub distance: f32,
 }
 
 impl Node {
@@ -103,17 +99,20 @@ impl Node {
 
     pub fn push_away_from_point(&mut self, point: Position, push_conf: &PushForceConfig) {
         let push_direction = (self.position() - point).normalized();
-        let force_div = 1. - self.position().distance(point) / push_conf.distance;
+        let force_div = 1. - self.position().distance(point) / push_conf.distance();
+
         if force_div <= 0. {
             return;
         }
-        self.current_force += push_direction * push_conf.force * force_div;
+
+        self.current_force += push_direction * push_conf.force() * force_div;
     }
 
     pub fn consume_force(&mut self, ctx: &mut Context) {
         if self.ignore_force {
             return;
         }
+
         self.position += self.current_force * tetra::time::get_delta_time(ctx).as_secs_f32();
         self.current_force = Position::zero();
     }
@@ -125,9 +124,10 @@ impl Node {
         mouse_position: Vec2<f32>,
     ) -> Result<(), Box<dyn Error>> {
         let params = self.get_draw_params(mouse_position);
-        self.circle.draw(ctx, params.color(self.color));
-        let params = self.get_draw_params(mouse_position);
+        self.circle.draw(ctx, params.clone().color(self.color));
+        //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
         self.border.draw(ctx, params.color(self.border_color));
+
         Ok(())
     }
 
@@ -150,6 +150,7 @@ impl Node {
             NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
             NodeState::NotVisited => Color::WHITE,
         };
+
         println!(
             "New color {}, {}, {}",
             self.color.r, self.color.g, self.color.b

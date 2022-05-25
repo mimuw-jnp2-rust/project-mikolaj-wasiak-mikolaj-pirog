@@ -1,22 +1,23 @@
-use crate::graph::Position;
-use crate::GameState;
 use std::error::Error;
+
 use tetra::graphics::Camera;
 use tetra::input::Key;
 use tetra::Context;
+
+use crate::graph::Position;
 
 const CAMERA_ZOOM_SPEED: f32 = 0.05;
 const Y_AXIS_MOVE_SPEED: f32 = 10.;
 const X_AXIS_MOVE_SPEED: f32 = 10.;
 const ROTATION_SPEED: f32 = 0.05;
 
-pub trait CameraHandling {
+pub trait CameraState {
     fn handle_camera_events(&mut self, event: tetra::Event) -> Result<(), Box<dyn Error>>;
 
-    fn update_camera_transofrmation(&mut self, ctx: &mut Context) -> Result<(), Box<dyn Error>>;
+    fn update_camera_transformation(&mut self, ctx: &mut Context) -> Result<(), Box<dyn Error>>;
 }
 
-impl CameraHandling for Camera {
+impl CameraState for Camera {
     fn handle_camera_events(&mut self, event: tetra::Event) -> Result<(), Box<dyn Error>> {
         // Only y coordinate is accessed because x corresponds to horizontal move of mouse wheel.
         if let tetra::Event::MouseWheelMoved { amount } = &event {
@@ -48,7 +49,7 @@ impl CameraHandling for Camera {
         Ok(())
     }
 
-    fn update_camera_transofrmation(&mut self, ctx: &mut Context) -> Result<(), Box<dyn Error>> {
+    fn update_camera_transformation(&mut self, ctx: &mut Context) -> Result<(), Box<dyn Error>> {
         if tetra::input::is_key_down(ctx, Key::Q) {
             self.rotation += ROTATION_SPEED;
         }

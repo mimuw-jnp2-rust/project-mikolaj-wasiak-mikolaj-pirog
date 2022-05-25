@@ -1,43 +1,35 @@
-# Grafy
+# Graphs
 
-## Autorzy
-- Mikołaj Piróg
+## Authors
+- Mikołaj Piróg (@aetn23)
 - Mikołaj Wasiak (@RudyMis)
 
-## Opis
+## Overview
 
-Program służy do edycji grafu oraz wizualizacji
-algorytmów grafowych. 
+A Rust application to edit graphs and run selected algorithms on them.
 
-Będziemy się wzorować na [tym edytorze](https://csacademy.com/app/graph_editor/) 
+Inspiration: [this editor](https://csacademy.com/app/graph_editor/)
 
-## Funkcjonalność
+## Features
 
-Edytowanie grafu
-- Dodawanie i usuwanie wierzchołków 
-- Łączenie wierzchołków krawędziami skierowanymi
-lub nieskierowanymi
-- Przesuwanie wierzchołków po okienku
-- Zapisywanie jakiś wartości w wierzchołku 
-do rozróżnienia/nazywania ich
-- Automatyczną separacja wierzchołków
-(jak w przykładzie)
+# Done
+- adding and removing nodes,
+- adding and deleting directed edged between nodes,
+- moving the graph around the window screen,
+- gravity between nodes,
+- basic camera transformations: moving (on WSAD), rotating (on Q,E), zooming (on mouse wheel),
+- running dfs visualization on the graph,
 
-Algorytmy grafowe
-- Chcemy żeby było widać każdy krok grafu
-- Kolorowanie wierzchołków w zależności czy są 
-rozpatrzone/zakolejkowane/nierozpatrzone
-- Dzielenie algorytmów na części gdy są skomplikowane
-np silnie spójne da się podzielić na dfs i dfs odwroconymi krawędziami 
+# Todo
+- adding undirected edges,
+- making the windows resizable,
+- allowing the nodes to store a string,
+- more algorithms,
 
-## Propozycje podziału na części 
-Pierwsza to zrobienie edytora i napisani jakiegoś
-prostego dfsa żeby zobaczyć czy struktury danych
-pozwalają na algorytmowanie
+## Libraries
+Petgraph for graphs structures, egui_tetra for graphics. egui_tetra is a wrapper for
+egui, a gui library, and tetra, a library for development.
 
-Druga to dodanie algorytmów
-
-## Biblioteki
-Szukamy zarówno czegoś co da nam gui jak i czegoś 
-na czym da się rysować kształty i je animować. Aktualnie stanęło na
-[egui](https://docs.rs/egui) + [tetra](https://tetra.seventeencups.net/) 
+## Installation
+Petgraph and egui install their dependencies' from crates - no work required on our part.
+Tetra has some dependencies that need to be installed manually - see [this](https://tetra.seventeencups.net/installation).
