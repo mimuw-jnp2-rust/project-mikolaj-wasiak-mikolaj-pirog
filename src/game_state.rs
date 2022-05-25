@@ -9,10 +9,10 @@ use tetra::Context;
 
 use crate::camera_handling::camera_state::CameraState;
 use crate::graph::edge::{
-    PullForceConfig, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE,
-    PUSH_FORCE_DISTANCE, PUSH_FORCE_FORCE,
+    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
+    PUSH_FORCE_FORCE,
 };
-use crate::graph::node::PushForceConfig;
+use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
 use crate::step_algorithms::algorithm::Algorithm;

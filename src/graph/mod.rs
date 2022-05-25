@@ -13,9 +13,10 @@ use tetra::Context;
 use edge::Edge;
 use node::Node;
 
-use self::{edge::PullForceConfig, node::PushForceConfig};
+use self::gravity::{PullForceConfig, PushForceConfig};
 
 pub mod edge;
+pub mod gravity;
 pub mod node;
 
 pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;

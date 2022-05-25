@@ -7,6 +7,7 @@ use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
 
+use super::gravity::PushForceConfig;
 use super::Position;
 
 const BASE_RADIUS: f32 = 20.;
@@ -40,26 +41,6 @@ pub struct Node {
     // To change colors this has to be separate
     circle: Mesh,
     border: Mesh,
-}
-
-#[derive(Clone, Copy)]
-pub struct PushForceConfig {
-    force: f32,
-    distance: f32,
-}
-
-impl PushForceConfig {
-    pub fn new(force: f32, distance: f32) -> PushForceConfig {
-        PushForceConfig { force, distance }
-    }
-
-    pub fn force(&self) -> f32 {
-        self.force
-    }
-
-    pub fn distance(&self) -> f32 {
-        self.distance
-    }
 }
 
 impl Node {
@@ -118,13 +99,13 @@ impl Node {
 
     pub fn push_away_from_point(&mut self, point: Position, push_conf: &PushForceConfig) {
         let push_direction = (self.position() - point).normalized();
-        let force_div = 1. - self.position().distance(point) / push_conf.distance;
+        let force_div = 1. - self.position().distance(point) / push_conf.distance();
 
         if force_div <= 0. {
             return;
         }
 
-        self.current_force += push_direction * push_conf.force * force_div;
+        self.current_force += push_direction * push_conf.force() * force_div;
     }
 
     pub fn consume_force(&mut self, ctx: &mut Context) {

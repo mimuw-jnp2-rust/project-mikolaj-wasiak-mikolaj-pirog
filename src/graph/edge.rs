@@ -8,6 +8,8 @@ use tetra::Context;
 
 use super::Position;
 
+use super::gravity::PullForceConfig;
+
 const BASE_STROKE_WIDTH: f32 = 5.;
 const BASE_ARROW_SCALE: f32 = 0.7;
 const BASE_ARROW_ARMS_SIZE: f32 = 25.;
@@ -25,29 +27,6 @@ pub struct Edge {
     enabled: bool,
 
     shape: Mesh,
-}
-
-#[derive(Clone, Copy)]
-pub struct PullForceConfig {
-    min_distance: f32,
-    force_at_twice_distance: f32,
-}
-
-impl PullForceConfig {
-    pub fn new(min_distance: f32, force_at_twice_distance: f32) -> PullForceConfig {
-        PullForceConfig {
-            min_distance,
-            force_at_twice_distance,
-        }
-    }
-
-    pub fn min_distance(&self) -> f32 {
-        self.min_distance
-    }
-
-    pub fn force_at_twice_distance(&self) -> f32 {
-        self.force_at_twice_distance
-    }
 }
 
 impl Edge {
@@ -120,12 +99,12 @@ impl Edge {
 
         let distance = self.from.distance(self.to);
 
-        if distance < config.min_distance {
+        if distance < config.min_distance() {
             Position::zero()
         } else {
             let direction = (self.to - self.from).normalized();
             let force_value =
-                (distance / config.min_distance - 1.) * config.force_at_twice_distance;
+                (distance / config.min_distance() - 1.) * config.force_at_twice_distance();
             direction * force_value
         }
     }
