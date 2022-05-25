@@ -69,9 +69,6 @@ impl GameState {
     pub fn pull_conf(&self) -> PullForceConfig {
         self.pull_conf
     }
-
-
-
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {

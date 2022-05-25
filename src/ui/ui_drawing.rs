@@ -52,7 +52,6 @@ pub fn graph_params_editor_ui(game_state: &mut GameState, egui_ctx: &egui::CtxRe
                 algorithm.show_dfs(&mut game_state.graph);
 
                 game_state.add_algorithm(algorithm);
-             
             }
         }
     });
