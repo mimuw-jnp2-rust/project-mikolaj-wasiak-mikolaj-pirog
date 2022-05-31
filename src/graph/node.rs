@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use egui_tetra::egui;
+use rand::prelude::*;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
@@ -98,7 +99,11 @@ impl Node {
     }
 
     pub fn push_away_from_point(&mut self, point: Position, push_conf: &PushForceConfig) {
-        let push_direction = (self.position() - point).normalized();
+        let mut direction_to = self.position() - point;
+        if direction_to.is_approx_zero() {
+            direction_to = Position::up().rotated_z(rand::random::<f32>());
+        }
+        let push_direction = direction_to.normalized();
         let force_div = 1. - self.position().distance(point) / push_conf.distance();
 
         if force_div <= 0. {
