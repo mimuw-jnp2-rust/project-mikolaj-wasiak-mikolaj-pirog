@@ -26,6 +26,9 @@ Inspiration: [this editor](https://csacademy.com/app/graph_editor/)
 - allowing the nodes to store a string,
 - more algorithms,
 
+## Code walkthrough 
+The three meaningfull parts of our application are graphs, step algorithms and the whole drawing using egui_tetra. We encountered little problems of rusty nature - the whole process of producing the code was rather pleasant. The biggest challenge was how to approach the modularization. As of now, we do not claim that our approach is the best and final. //todo
+
 ## Libraries
 Petgraph for graphs structures, egui_tetra for graphics. egui_tetra is a wrapper for
 egui, a gui library, and tetra, a library for development.
