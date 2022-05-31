@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use egui_tetra::egui;
-use rand::prelude::*;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};

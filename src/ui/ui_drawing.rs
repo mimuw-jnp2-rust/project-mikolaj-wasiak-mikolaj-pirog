@@ -65,9 +65,10 @@ pub fn graph_params_editor_ui(
             for node in game_state.graph.node_indices() {
                 for node_other in game_state.graph.node_indices() {
                     if node != node_other {
-                        match game_state.graph.connect_nodes(ctx, node, node_other) {
-                            _ => (),
-                        }
+                        game_state
+                            .graph
+                            .connect_nodes(ctx, node, node_other)
+                            .unwrap();
                     }
                 }
             }
