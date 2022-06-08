@@ -7,7 +7,6 @@ use crate::graph::node::NodeState;
 use crate::graph::Graph;
 use crate::step_algorithms::timer::Timer;
 
-
 pub struct NodeStep {
     idx: NodeIndex,
     to_state: NodeState,
@@ -40,7 +39,7 @@ pub enum AlgorithmStep {
 }
 
 pub trait Algorithm {
-   /* fn new(start_idx: NodeIndex) -> Algorithm {
+    /* fn new(start_idx: NodeIndex) -> Algorithm {
         Algorithm {
             steps: VecDeque::new(),
             timer: Timer::new(1., true),
@@ -80,16 +79,16 @@ pub trait Algorithm {
 
     fn timer_mut(&mut self) -> &mut Timer;
 
-    fn steps(&self) -> &Vec<AlgorithmStep>;
+    fn steps(&self) -> &VecDeque<AlgorithmStep>;
 
-    fn steps_mut(&mut self) -> &mut Vec<AlgorithmStep>;
+    fn steps_mut(&mut self) -> &mut VecDeque<AlgorithmStep>;
 
     fn add_step(&mut self, algo_step: AlgorithmStep) {
         self.steps_mut().push_back(algo_step);
     }
 
     fn start_timer(&mut self) {
-        self.timer().start();
+        self.timer_mut().start();
     }
 
     fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
@@ -98,5 +97,5 @@ pub trait Algorithm {
         }
     }
 
-    fn run_algorithm(&self);
+    fn run_algorithm(&mut self, graph: &mut Graph);
 }

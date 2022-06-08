@@ -9,13 +9,35 @@ use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, Node
 use crate::step_algorithms::timer::Timer;
 
 pub struct Dfs {
-    steps: VecDeque<NodeIndex>,
+    steps: VecDeque<AlgorithmStep>,
     timer: Timer,
     start_idx: NodeIndex,
 }
 
 impl Algorithm for Dfs {
+    fn start_idx(&self) -> NodeIndex {
+        self.start_idx
+    }
 
+    fn timer(&self) -> &Timer {
+        &self.timer
+    }
+
+    fn timer_mut(&mut self) -> &mut Timer {
+        &mut self.timer
+    }
+
+    fn steps(&self) -> &VecDeque<AlgorithmStep> {
+        &self.steps
+    }
+
+    fn steps_mut(&mut self) -> &mut VecDeque<AlgorithmStep> {
+        &mut self.steps
+    }
+
+    fn run_algorithm(&mut self, graph: &mut Graph) {
+        self.dfs(graph);
+    }
 }
 
 impl Dfs {
