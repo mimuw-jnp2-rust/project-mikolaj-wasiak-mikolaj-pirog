@@ -1,11 +1,32 @@
+use std::collections::VecDeque;
+
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
 
 use crate::graph::node::NodeState;
 use crate::graph::Graph;
 use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
+use crate::step_algorithms::timer::Timer;
 
-impl Algorithm {
+pub struct Dfs {
+    steps: VecDeque<NodeIndex>,
+    timer: Timer,
+    start_idx: NodeIndex,
+}
+
+impl Algorithm for Dfs {
+
+}
+
+impl Dfs {
+    pub fn new(start_idx: NodeIndex) -> Dfs {
+        Dfs {
+            steps: VecDeque::new(),
+            timer: Timer::new(1., true),
+            start_idx,
+        }
+    }
+
     fn dfs(&mut self, graph: &mut Graph) {
         self.dfs_helper(graph, self.start_idx());
     }

@@ -34,7 +34,7 @@ pub struct GameState {
     push_conf: PushForceConfig,
     pull_conf: PullForceConfig,
 
-    algorithm: Option<Algorithm>,
+    algorithm: Option<Box<dyn Algorithm>>,
 }
 
 impl GameState {
@@ -58,7 +58,7 @@ impl GameState {
         })
     }
 
-    pub fn add_algorithm(&mut self, algorithm: Algorithm) {
+    pub fn add_algorithm(&mut self, algorithm: Box<dyn Algorithm>) {
         self.algorithm = Some(algorithm);
     }
 

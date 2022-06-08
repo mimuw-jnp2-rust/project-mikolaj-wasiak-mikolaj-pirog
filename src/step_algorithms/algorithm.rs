@@ -7,11 +7,6 @@ use crate::graph::node::NodeState;
 use crate::graph::Graph;
 use crate::step_algorithms::timer::Timer;
 
-pub struct Algorithm {
-    steps: VecDeque<AlgorithmStep>,
-    timer: Timer,
-    start_idx: NodeIndex,
-}
 
 pub struct NodeStep {
     idx: NodeIndex,
@@ -44,19 +39,19 @@ pub enum AlgorithmStep {
     Edge(EdgeStep),
 }
 
-impl Algorithm {
-    pub fn new(start_idx: NodeIndex) -> Algorithm {
+pub trait Algorithm {
+   /* fn new(start_idx: NodeIndex) -> Algorithm {
         Algorithm {
             steps: VecDeque::new(),
             timer: Timer::new(1., true),
             start_idx,
         }
-    }
+    }*/
 
-    pub fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
-        if self.timer.update(ctx) {
+    fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
+        if self.timer_mut().update(ctx) {
             println!("timer ticked");
-            if let Some(alg_step) = self.steps.pop_front() {
+            if let Some(alg_step) = self.steps_mut().pop_front() {
                 match alg_step {
                     AlgorithmStep::Node(step) => {
                         if let Some(node) = graph.node_weight_mut(step.idx) {
@@ -70,30 +65,38 @@ impl Algorithm {
                     }
                 }
             } else {
-                self.timer.stop();
+                self.timer_mut().stop();
 
-                if let Some(node) = graph.node_weight_mut(self.start_idx) {
+                if let Some(node) = graph.node_weight_mut(self.start_idx()) {
                     node.set_ignore_force(false)
                 }
             }
         }
     }
 
-    pub fn start_idx(&self) -> NodeIndex {
-        self.start_idx
+    fn start_idx(&self) -> NodeIndex;
+
+    fn timer(&self) -> &Timer;
+
+    fn timer_mut(&mut self) -> &mut Timer;
+
+    fn steps(&self) -> &Vec<AlgorithmStep>;
+
+    fn steps_mut(&mut self) -> &mut Vec<AlgorithmStep>;
+
+    fn add_step(&mut self, algo_step: AlgorithmStep) {
+        self.steps_mut().push_back(algo_step);
     }
 
-    pub fn add_step(&mut self, algo_step: AlgorithmStep) {
-        self.steps.push_back(algo_step);
+    fn start_timer(&mut self) {
+        self.timer().start();
     }
 
-    pub fn start_timer(&mut self) {
-        self.timer.start();
-    }
-
-    pub fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
-        if let Some(node) = graph.node_weight_mut(self.start_idx) {
+    fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
+        if let Some(node) = graph.node_weight_mut(self.start_idx()) {
             node.set_ignore_force(true)
         }
     }
+
+    fn run_algorithm(&self);
 }
