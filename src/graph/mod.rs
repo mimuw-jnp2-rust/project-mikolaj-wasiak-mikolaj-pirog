@@ -18,6 +18,7 @@ use self::gravity::{PullForceConfig, PushForceConfig};
 pub mod edge;
 pub mod gravity;
 pub mod node;
+pub mod random;
 
 pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = Vec2<f32>;
