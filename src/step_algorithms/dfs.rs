@@ -1,11 +1,55 @@
+use std::collections::VecDeque;
+
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
 
 use crate::graph::node::NodeState;
 use crate::graph::Graph;
 use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
+use crate::step_algorithms::timer::Timer;
 
-impl Algorithm {
+pub struct Dfs {
+    steps: VecDeque<AlgorithmStep>,
+    timer: Timer,
+    start_idx: NodeIndex,
+}
+
+impl Algorithm for Dfs {
+    fn start_idx(&self) -> NodeIndex {
+        self.start_idx
+    }
+
+    fn timer(&self) -> &Timer {
+        &self.timer
+    }
+
+    fn timer_mut(&mut self) -> &mut Timer {
+        &mut self.timer
+    }
+
+    fn steps(&self) -> &VecDeque<AlgorithmStep> {
+        &self.steps
+    }
+
+    fn steps_mut(&mut self) -> &mut VecDeque<AlgorithmStep> {
+        &mut self.steps
+    }
+
+    fn run_algorithm(&mut self, graph: &mut Graph) {
+        self.reset_algorithm(graph);
+        self.dfs(graph);
+    }
+}
+
+impl Dfs {
+    pub fn new(start_idx: NodeIndex) -> Dfs {
+        Dfs {
+            steps: VecDeque::new(),
+            timer: Timer::new(1., true),
+            start_idx,
+        }
+    }
+
     fn dfs(&mut self, graph: &mut Graph) {
         self.dfs_helper(graph, self.start_idx());
     }
@@ -47,23 +91,8 @@ impl Algorithm {
     }
 
     pub fn show_dfs(&mut self, graph: &mut Graph) {
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
+        
 
-        self.dfs(graph);
-
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
-
-        // Those lines allow node to move while the algorithm is being showcased.
-        for edge in graph.edge_weights_mut() {
-            edge.enable_edge();
-            edge.disable_edge();
-        }
-
-        self.start_timer();
-        self.turn_off_start_node_gravity(graph);
+        
     }
 }
