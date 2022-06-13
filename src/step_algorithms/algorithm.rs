@@ -97,5 +97,28 @@ pub trait Algorithm {
         }
     }
 
+    fn reset_algorithm(&mut self, graph: &mut Graph) {
+        for node in graph.node_weights_mut() {
+            node.set_state(NodeState::NotVisited);
+        }
+        for edge in graph.edge_weights_mut() {
+            edge.enable_edge();
+        }
+    }
+
     fn run_algorithm(&mut self, graph: &mut Graph);
+    
+    fn show_algorithm(&mut self, graph: &mut Graph) {
+        for node in graph.node_weights_mut() {
+            node.set_state(NodeState::NotVisited);
+        }
+
+        // Allow node to move while the algorithm is being showcased
+        for edge in graph.edge_weights_mut() {
+            edge.disable_edge();
+        }
+
+        self.start_timer();
+        self.turn_off_start_node_gravity(graph);
+    }
 }

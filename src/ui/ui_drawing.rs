@@ -3,6 +3,7 @@ use egui_tetra::egui;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::dfs::Dfs;
+use crate::step_algorithms::algorithm::Algorithm;
 use crate::GameState;
 use tetra::Context;
 
@@ -55,7 +56,8 @@ pub fn graph_params_editor_ui(
         if ui.button("dfs").clicked() {
             if let Some(idx) = game_state.graph.node_indices().next() {
                 let mut algorithm = Dfs::new(idx);
-                algorithm.show_dfs(&mut game_state.graph);
+                algorithm.run_algorithm(&mut game_state.graph);
+                algorithm.show_algorithm(&mut game_state.graph);
 
                 game_state.add_algorithm(Box::new(algorithm));
             }

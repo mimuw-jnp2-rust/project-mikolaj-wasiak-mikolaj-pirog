@@ -36,6 +36,7 @@ impl Algorithm for Dfs {
     }
 
     fn run_algorithm(&mut self, graph: &mut Graph) {
+        self.reset_algorithm(graph);
         self.dfs(graph);
     }
 }
@@ -90,23 +91,8 @@ impl Dfs {
     }
 
     pub fn show_dfs(&mut self, graph: &mut Graph) {
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
+        
 
-        self.dfs(graph);
-
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
-
-        // Those lines allow node to move while the algorithm is being showcased.
-        for edge in graph.edge_weights_mut() {
-            edge.enable_edge();
-            edge.disable_edge();
-        }
-
-        self.start_timer();
-        self.turn_off_start_node_gravity(graph);
+        
     }
 }
