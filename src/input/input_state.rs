@@ -6,7 +6,7 @@ use tetra::Context;
 
 use crate::graph::node::NodeHighlight;
 use crate::graph::GraphOnCanvas;
-use crate::graph::{node::Node, Graph};
+use crate::graph::{node::VisibleNode, Graph};
 
 #[derive(Default)]
 pub struct ConnectData {
@@ -34,7 +34,7 @@ impl InputState {
     ) -> Result<(), Box<dyn Error>> {
         match self {
             InputState::Add => {
-                graph.add_node(Node::new(ctx, position)?);
+                graph.add_node(VisibleNode::new(ctx, position)?);
             }
             InputState::Remove => {
                 graph

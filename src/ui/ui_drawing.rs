@@ -3,7 +3,7 @@ use egui_tetra::egui;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::dfs::Dfs;
-use crate::step_algorithms::algorithm::Algorithm;
+use crate::step_algorithms::algorithm::{Algorithm, VisibleAlgorithm};
 use crate::GameState;
 use tetra::Context;
 

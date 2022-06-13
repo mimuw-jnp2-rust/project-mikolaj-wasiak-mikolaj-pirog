@@ -3,7 +3,7 @@ use rand::seq::IteratorRandom;
 use std::error::Error;
 use tetra::Context;
 
-use super::{Graph, GraphOnCanvas, Node, Position};
+use super::{Graph, GraphOnCanvas, VisibleNode, Position};
 
 // TODO: Button to create random graph
 
@@ -14,7 +14,7 @@ pub fn random(
 ) -> Result<Graph, Box<dyn Error>> {
     let mut g = Graph::new();
     for _ in [0..node_count] {
-        let weight = Node::new(ctx, Position::zero())?;
+        let weight = VisibleNode::new(ctx, Position::zero())?;
         g.add_node(weight);
     }
     let mut rng = rand::thread_rng();

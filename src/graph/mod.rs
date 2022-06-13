@@ -11,7 +11,7 @@ use tetra::math::Vec2;
 use tetra::Context;
 
 use edge::Edge;
-use node::Node;
+use node::{VisibleNode, Node};
 
 use self::gravity::{PullForceConfig, PushForceConfig};
 
@@ -20,7 +20,7 @@ pub mod gravity;
 pub mod node;
 pub mod random;
 
-pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
+pub type Graph = petgraph::Graph<VisibleNode, Edge, Directed, u32>;
 pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {

@@ -25,7 +25,13 @@ pub enum NodeState {
     NotVisited,
 }
 
-pub struct Node {
+pub trait Node {
+    fn get_state(&self) -> &NodeState;
+
+    fn set_state(&mut self, state: NodeState);
+}
+
+pub struct VisibleNode {
     position: Position,
     radius: f32,
 
@@ -43,9 +49,9 @@ pub struct Node {
     border: Mesh,
 }
 
-impl Node {
-    pub fn new(ctx: &mut Context, position: Position) -> Result<Node, Box<dyn Error>> {
-        Ok(Node {
+impl VisibleNode {
+    pub fn new(ctx: &mut Context, position: Position) -> Result<VisibleNode, Box<dyn Error>> {
+        Ok(VisibleNode {
             position,
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
@@ -143,11 +149,18 @@ impl Node {
         self.color
     }
 
-    pub fn get_state(&self) -> &NodeState {
+    pub fn set_ignore_force(&mut self, value: bool) {
+        self.ignore_force = value;
+        self.current_force = Position::zero();
+    }
+}
+
+impl Node for VisibleNode {
+    fn get_state(&self) -> &NodeState {
         &self.algorithm_state
     }
 
-    pub fn set_state(&mut self, state: NodeState) {
+    fn set_state(&mut self, state: NodeState) {
         self.algorithm_state = state;
         self.color = match self.algorithm_state {
             NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
@@ -159,10 +172,5 @@ impl Node {
             "New color {}, {}, {}",
             self.color.r, self.color.g, self.color.b
         );
-    }
-
-    pub fn set_ignore_force(&mut self, value: bool) {
-        self.ignore_force = value;
-        self.current_force = Position::zero();
     }
 }

@@ -15,7 +15,7 @@ use crate::graph::edge::{
 use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
-use crate::step_algorithms::algorithm::Algorithm;
+use crate::step_algorithms::algorithm::VisibleAlgorithm;
 use crate::ui::ui_drawing::graph_params_editor_ui;
 
 pub const SCREEN_WIDTH: f32 = 640.;
@@ -34,7 +34,7 @@ pub struct GameState {
     push_conf: PushForceConfig,
     pull_conf: PullForceConfig,
 
-    algorithm: Option<Box<dyn Algorithm>>,
+    algorithm: Option<Box<dyn VisibleAlgorithm>>,
 }
 
 impl GameState {
@@ -58,7 +58,7 @@ impl GameState {
         })
     }
 
-    pub fn add_algorithm(&mut self, algorithm: Box<dyn Algorithm>) {
+    pub fn add_algorithm(&mut self, algorithm: Box<dyn VisibleAlgorithm>) {
         self.algorithm = Some(algorithm);
     }
 
