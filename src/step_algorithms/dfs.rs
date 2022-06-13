@@ -89,10 +89,4 @@ impl Dfs {
             node.set_state(NodeState::Visited)
         }
     }
-
-    pub fn show_dfs(&mut self, graph: &mut Graph) {
-        
-
-        
-    }
 }
