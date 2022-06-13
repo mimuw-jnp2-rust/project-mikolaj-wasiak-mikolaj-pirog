@@ -53,14 +53,14 @@ impl Edge {
         builder.build_mesh(ctx)
     }
 
-    pub fn new(ctx: &mut Context, from: Position, to: Position) -> Result<Edge, Box<dyn Error>> {
-        Ok(Edge {
+    pub fn new(ctx: &mut Context, from: Position, to: Position) -> Edge {
+        Edge {
             from,
             to,
             color: Color::BLACK,
-            shape: Edge::create_arrow(ctx, from, to)?,
+            shape: Edge::create_arrow(ctx, from, to).unwrap(),
             enabled: true,
-        })
+        }
     }
 
     pub fn update_position(

@@ -51,8 +51,8 @@ pub struct VisibleNode {
 }
 
 impl VisibleNode {
-    pub fn new(ctx: &mut Context, position: Position) -> Result<VisibleNode, Box<dyn Error>> {
-        Ok(VisibleNode {
+    pub fn new(ctx: &mut Context, position: Position) -> VisibleNode {
+        VisibleNode {
             position,
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
@@ -64,11 +64,13 @@ impl VisibleNode {
                 ShapeStyle::Stroke(BASE_BORDER_SIZE),
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
-            )?,
+            )
+            .unwrap(),
             algorithm_state: NodeState::NotVisited,
-            circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)?,
+            circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
+                .unwrap(),
             highlight: NodeHighlight::Normal,
-        })
+        }
     }
 
     // Is point in this shape?
@@ -86,6 +88,14 @@ impl VisibleNode {
                 },
             )
             .position(self.position)
+    }
+
+    fn get_color(&self) -> Color {
+        match self.algorithm_state {
+            NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
+            NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
+            NodeState::NotVisited => Color::WHITE,
+        }
     }
 
     pub fn set_highlight(&mut self, highlight: NodeHighlight) {
@@ -133,21 +143,15 @@ impl VisibleNode {
         ctx: &mut Context,
         _egui_ctx: &egui::CtxRef,
         mouse_position: Vec2<f32>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) {
         let params = self.get_draw_params(mouse_position);
         self.circle.draw(ctx, params.clone().color(self.color));
         //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
         self.border.draw(ctx, params.color(self.border_color));
-
-        Ok(())
     }
 
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
-    }
-
-    pub fn get_color(&self) -> Color {
-        self.color
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
@@ -163,15 +167,5 @@ impl Node for VisibleNode {
 
     fn set_state(&mut self, state: NodeState) {
         self.algorithm_state = state;
-        self.color = match self.algorithm_state {
-            NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
-            NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
-            NodeState::NotVisited => Color::WHITE,
-        };
-
-        println!(
-            "New color {}, {}, {}",
-            self.color.r, self.color.g, self.color.b
-        );
     }
 }

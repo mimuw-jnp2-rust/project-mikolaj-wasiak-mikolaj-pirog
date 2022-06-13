@@ -31,8 +31,12 @@ pub struct GameState {
 
     // This maybe should be under ui struct
     // But we don't have ui struct
+    //   force:
     push_conf: PushForceConfig,
     pull_conf: PullForceConfig,
+    //   random:
+    pub node_count: u32,
+    pub edge_count: u32,
 
     algorithm: Option<Box<dyn VisibleAlgorithm>>,
 }
@@ -54,6 +58,8 @@ impl GameState {
                 PULL_FORCE_MIN_DISTANCE,
                 PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
             ),
+            node_count: 10,
+            edge_count: 15,
             algorithm: None,
         })
     }
@@ -80,7 +86,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
     fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
         self.graph
-            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf)?;
+            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf);
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);
@@ -94,7 +100,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
         self.graph
-            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx)?;
+            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx);
 
         graphics::reset_transform_matrix(ctx);
 

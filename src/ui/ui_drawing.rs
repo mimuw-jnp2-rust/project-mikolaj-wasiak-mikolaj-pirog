@@ -1,6 +1,7 @@
 use egui_tetra::egui;
 
 use crate::graph::GraphOnCanvas;
+use crate::graph::random::generate;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
 use crate::step_algorithms::dfs::Dfs;
 use crate::step_algorithms::algorithm::{Algorithm, VisibleAlgorithm};
@@ -12,7 +13,22 @@ pub fn graph_params_editor_ui(
     ctx: &mut Context,
     egui_ctx: &egui::CtxRef,
 ) {
-    egui::Window::new("Graph editor").show(egui_ctx, |ui| {
+    egui::Window::new("Create").show(egui_ctx, |ui| {
+        ui.horizontal(|ui| {
+            ui.label("Nodes");
+            ui.add(egui::DragValue::new(&mut game_state.node_count));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Edges");
+            ui.add(egui::DragValue::new(&mut game_state.edge_count));
+        });
+        if ui.button("Generate").clicked() {
+            // TODO: Un Unwrap
+            generate(ctx, &mut game_state.graph, game_state.node_count, game_state.edge_count);
+        }
+    });
+
+    egui::Window::new("Edit").show(egui_ctx, |ui| {
         ui.heading("Mode");
         ui.horizontal(|ui| {
             ui.selectable_value(&mut game_state.input_state, InputState::Add, "Add");
@@ -69,8 +85,7 @@ pub fn graph_params_editor_ui(
                     if node != node_other {
                         game_state
                             .graph
-                            .connect_nodes(ctx, node, node_other)
-                            .unwrap();
+                            .connect_nodes(ctx, node, node_other);
                     }
                 }
             }

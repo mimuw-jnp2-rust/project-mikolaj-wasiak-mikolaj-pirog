@@ -34,7 +34,7 @@ impl InputState {
     ) -> Result<(), Box<dyn Error>> {
         match self {
             InputState::Add => {
-                graph.add_node(VisibleNode::new(ctx, position)?);
+                graph.add_node(VisibleNode::new(ctx, position));
             }
             InputState::Remove => {
                 graph
@@ -89,7 +89,7 @@ impl InputState {
         if let InputState::Move(data) = self {
             match data.selected_node {
                 None => (),
-                Some(node_idx) => graph.move_node(ctx, node_idx, position)?,
+                Some(node_idx) => graph.move_node(ctx, node_idx, position),
             }
         }
 
