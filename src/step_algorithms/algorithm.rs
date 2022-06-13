@@ -10,6 +10,7 @@ use crate::step_algorithms::timer::Timer;
 
 pub type GenericGraph<N, E> = petgraph::Graph<N, E, Directed, u32>;
 
+#[derive(PartialEq, Debug)]
 pub struct NodeStep {
     idx: NodeIndex,
     to_state: NodeState,
@@ -21,6 +22,7 @@ impl NodeStep {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct EdgeStep {
     idx: EdgeIndex,
 }
@@ -36,6 +38,7 @@ impl EdgeStep {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub enum AlgorithmStep {
     Node(NodeStep),
     Edge(EdgeStep),

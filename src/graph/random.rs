@@ -1,4 +1,3 @@
-use rand::prelude::*;
 use rand::seq::IteratorRandom;
 use std::error::Error;
 use tetra::Context;

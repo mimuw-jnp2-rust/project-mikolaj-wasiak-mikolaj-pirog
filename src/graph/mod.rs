@@ -11,7 +11,7 @@ use tetra::math::Vec2;
 use tetra::Context;
 
 use edge::Edge;
-use node::{VisibleNode, Node};
+use node::VisibleNode;
 
 use self::gravity::{PullForceConfig, PushForceConfig};
 

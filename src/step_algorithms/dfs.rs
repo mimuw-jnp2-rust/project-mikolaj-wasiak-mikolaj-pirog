@@ -95,14 +95,45 @@ impl Dfs {
     }
 }
 
-#[cfg(tests)]
-mod test {
-    use crate::graph::node::Node;
+#[cfg(test)]
+mod tests {
+    use crate::{graph::node::{NodeState, Node}, step_algorithms::algorithm::{Algorithm, AlgorithmStep, NodeStep, EdgeStep}};
+    use super::{GenericGraph, Dfs};
+    use std::collections::VecDeque;
+
+    #[derive(Clone)]
+    struct SimpleNode {
+        state: NodeState,
+    }
+
+    impl Node for SimpleNode {
+        fn get_state(&self) -> &NodeState {
+            &self.state    
+        }
+
+        fn set_state(&mut self, state: NodeState) {
+            self.state = state;
+        }
+    }
 
     #[test]
     fn small_test() {
-        let graph = Graph::new();
-        let weight = Node::new();
-        graph
+        let mut graph = GenericGraph::<SimpleNode, u32>::new();
+        let node_weight = SimpleNode { state: NodeState::NotVisited };
+        let a = graph.add_node(node_weight.clone());
+        let b = graph.add_node(node_weight);
+        let edge_idx = graph.add_edge(a, b, 0);
+
+        let mut dfs = Dfs::new(a);
+        dfs.run_algorithm(&mut graph);
+        
+        let mut desired = VecDeque::<AlgorithmStep>::new();
+        desired.push_back(AlgorithmStep::Node(NodeStep::new(a, NodeState::Queued)));
+        desired.push_back(AlgorithmStep::Edge(EdgeStep::new(edge_idx)));
+        desired.push_back(AlgorithmStep::Node(NodeStep::new(b, NodeState::Queued)));
+        desired.push_back(AlgorithmStep::Node(NodeStep::new(b, NodeState::Visited)));
+        desired.push_back(AlgorithmStep::Node(NodeStep::new(a, NodeState::Visited)));
+
+        assert_eq!(Algorithm::<SimpleNode, u32>::steps(&dfs), &desired);
     }
 }

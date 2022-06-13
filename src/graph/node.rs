@@ -19,6 +19,7 @@ pub enum NodeHighlight {
     Normal,
 }
 
+#[derive(Clone, PartialEq, Debug)]
 pub enum NodeState {
     Visited,
     Queued,
