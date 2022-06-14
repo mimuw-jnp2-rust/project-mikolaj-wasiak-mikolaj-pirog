@@ -59,6 +59,9 @@ fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::
             UiState::Algorithm,
             "Show algos",
         );
+        if ui.button("reset state").clicked() {
+            game_state.graph.reset_state();
+        }
     });
 }
 
@@ -76,7 +79,6 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
             ui.add(egui::DragValue::new(&mut game_state.ui_data.edge_count));
         });
         if ui.button("Generate").clicked() {
-            // TODO: Un Unwrap
             game_state.graph = generate(
                 ctx,
                 game_state.ui_data.node_count,
@@ -100,7 +102,7 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
                 "Move",
             );
         });
-        // TODO: Może to nie jest potrzebne?
+
         // FIXME: reference to ephemeral variables - can't edit force/distance
         ui.heading("Forces");
         ui.label("Push:");
@@ -156,6 +158,9 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
             .clicked()
         {
             if let Some(idx) = idx_opt {
+                // TODO: Should we reset graph each time button is pressed?
+                // What if someone wants to run dfs twice on separate sub-graphs?
+                game_state.graph.reset_state();
                 let algorithm = Dfs::new();
                 let result = algorithm.run_algorithm(&mut game_state.graph, idx);
                 game_state.add_algorithm(result);

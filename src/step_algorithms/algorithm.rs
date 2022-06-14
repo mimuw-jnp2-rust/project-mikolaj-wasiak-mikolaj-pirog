@@ -4,10 +4,9 @@ use petgraph::graph::{EdgeIndex, NodeIndex};
 use petgraph::Directed;
 
 use crate::graph::node::{Node, NodeState};
+use crate::graph::{Graph, GraphOnCanvas};
 
 use tetra::Context;
-
-use crate::graph::{edge::Edge, node::VisibleNode};
 
 use super::Timer;
 
@@ -80,9 +79,8 @@ impl AlgorithmResult {
         self.timer_mut().start();
     }
 
-    pub fn update(&mut self, ctx: &mut Context, graph: &mut GenericGraph<VisibleNode, Edge>) {
+    pub fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
         if self.timer_mut().update(ctx) {
-            println!("timer ticked");
             if let Some(alg_step) = self.steps.pop_front() {
                 match alg_step {
                     AlgorithmStep::Node(step) => {
@@ -106,16 +104,14 @@ impl AlgorithmResult {
         }
     }
 
-    fn turn_off_start_node_gravity(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
+    fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
         if let Some(node) = graph.node_weight_mut(self.start_idx) {
             node.set_ignore_force(true)
         }
     }
 
-    pub fn show_algorithm(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
+    pub fn show_algorithm(&mut self, graph: &mut Graph) {
+        graph.reset_state();
 
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
