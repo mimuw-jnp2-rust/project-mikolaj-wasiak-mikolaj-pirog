@@ -166,7 +166,7 @@ impl GraphOnCanvas for Graph {
 
     fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef) {
         for edge in self.edge_weights_mut() {
-            edge.draw(ctx, egui_ctx);
+            edge.draw(ctx, egui_ctx).unwrap();
         }
 
         for node in self.node_weights_mut() {

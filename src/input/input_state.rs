@@ -7,21 +7,16 @@ use crate::graph::GraphOnCanvas;
 use crate::graph::{node::VisibleNode, Graph};
 
 #[derive(Default)]
-pub struct ConnectData {
-    from_node: Option<NodeIndex<u32>>,
-}
-
-#[derive(Default)]
-pub struct MoveData {
+pub struct StateData {
     selected_node: Option<NodeIndex<u32>>,
 }
 
 pub enum InputState {
     Add,
     Remove,
-    Move(MoveData),
-    Connect(ConnectData),
-    RunAlgorithm,
+    Move(StateData),
+    Connect(StateData),
+    Select(StateData),
 }
 
 impl InputState {
@@ -51,7 +46,7 @@ impl InputState {
                     }
                 }
             },
-            InputState::Connect(data) => match data.from_node {
+            InputState::Connect(data) => match data.selected_node {
                 Some(from) => {
                     graph
                         .get_node_from_point(position)
@@ -60,16 +55,31 @@ impl InputState {
                         node.set_highlight(NodeHighlight::Normal)
                     }
 
-                    data.from_node = None;
+                    data.selected_node = None;
                 }
                 None => {
-                    data.from_node = graph.get_node_from_point(position);
-                    if let Some(node) = data.from_node.and_then(|idx| graph.node_weight_mut(idx)) {
+                    data.selected_node = graph.get_node_from_point(position);
+                    if let Some(node) = data
+                        .selected_node
+                        .and_then(|idx| graph.node_weight_mut(idx))
+                    {
                         node.set_highlight(NodeHighlight::Highlighted)
                     }
                 }
             },
-            InputState::RunAlgorithm => {}
+            InputState::Select(data) => {
+                if let Some(idx) = data.selected_node {
+                    graph
+                        .node_weight_mut(idx)
+                        .map(|node| node.set_highlight(NodeHighlight::Normal));
+                }
+                data.selected_node = graph.get_node_from_point(position);
+                if let Some(idx) = data.selected_node {
+                    graph
+                        .node_weight_mut(idx)
+                        .map(|node| node.set_highlight(NodeHighlight::Highlighted));
+                }
+            }
         }
     }
 
@@ -91,7 +101,7 @@ impl PartialEq for InputState {
                 | (InputState::Remove, InputState::Remove)
                 | (InputState::Move(_), InputState::Move(_))
                 | (InputState::Connect(_), InputState::Connect(_))
-                | (InputState::RunAlgorithm, InputState::RunAlgorithm)
+                | (InputState::Select(_), InputState::Select(_))
         )
     }
 }

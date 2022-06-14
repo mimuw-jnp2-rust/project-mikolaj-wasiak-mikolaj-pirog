@@ -1,38 +1,79 @@
 use egui_tetra::egui;
 
+use crate::graph::edge::{
+    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
+    PUSH_FORCE_FORCE,
+};
+use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
-use crate::input::input_state::{ConnectData, InputState, MoveData};
+use crate::input::input_state::{InputState, StateData};
 use crate::GameState;
 use tetra::Context;
 
-pub fn graph_params_editor_ui(
-    game_state: &mut GameState,
-    ctx: &mut Context,
-    egui_ctx: &egui::CtxRef,
-) {
-    egui::Window::new("Create").show(egui_ctx, |ui| {
+#[derive(PartialEq)]
+enum UiState {
+    Edit,
+    Algorithm,
+}
+
+pub struct UiData {
+    state: UiState,
+
+    //   force:
+    pub push_conf: PushForceConfig,
+    pub pull_conf: PullForceConfig,
+
+    //   random-gen:
+    pub node_count: u32,
+    pub edge_count: u32,
+}
+
+impl UiData {
+    pub fn new() -> UiData {
+        UiData {
+            push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
+            pull_conf: PullForceConfig::new(
+                PULL_FORCE_MIN_DISTANCE,
+                PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
+            ),
+            node_count: 10,
+            edge_count: 15,
+            state: UiState::Edit,
+        }
+    }
+}
+
+fn graph_generator_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    egui::Window::new("Controls").show(egui_ctx, |ui| {
+        ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
+        ui.selectable_value(
+            &mut game_state.ui_data.state,
+            UiState::Algorithm,
+            "Show algos",
+        );
+    });
+}
+
+fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    egui::Window::new("Edit").show(egui_ctx, |ui| {
         ui.horizontal(|ui| {
             ui.label("Nodes");
-            ui.add(egui::DragValue::new(&mut game_state.node_count));
+            ui.add(egui::DragValue::new(&mut game_state.ui_data.node_count));
         });
         ui.horizontal(|ui| {
             ui.label("Edges");
-            ui.add(egui::DragValue::new(&mut game_state.edge_count));
+            ui.add(egui::DragValue::new(&mut game_state.ui_data.edge_count));
         });
         if ui.button("Generate").clicked() {
             // TODO: Un Unwrap
-            generate(
+            game_state.graph = generate(
                 ctx,
-                &mut game_state.graph,
-                game_state.node_count,
-                game_state.edge_count,
+                game_state.ui_data.node_count,
+                game_state.ui_data.edge_count,
             );
         }
-    });
-
-    egui::Window::new("Edit").show(egui_ctx, |ui| {
-        ui.heading("Mode");
+        ui.heading("Edit Mode");
         ui.horizontal(|ui| {
             ui.selectable_value(&mut game_state.input_state, InputState::Add, "Add");
             ui.selectable_value(&mut game_state.input_state, InputState::Remove, "Remove");
@@ -40,15 +81,17 @@ pub fn graph_params_editor_ui(
         ui.horizontal(|ui| {
             ui.selectable_value(
                 &mut game_state.input_state,
-                InputState::Connect(ConnectData::default()),
+                InputState::Connect(StateData::default()),
                 "Connect",
             );
             ui.selectable_value(
                 &mut game_state.input_state,
-                InputState::Move(MoveData::default()),
+                InputState::Move(StateData::default()),
                 "Move",
             );
         });
+        // TODO: Może to nie jest potrzebne?
+        // FIXME: reference to ephemeral variables - can't edit force/distance
         ui.heading("Forces");
         ui.label("Push:");
         ui.horizontal(|ui| {
@@ -72,16 +115,7 @@ pub fn graph_params_editor_ui(
                 &mut game_state.pull_conf().min_distance(),
             ));
         });
-        if ui.button("dfs").clicked() {
-            if let Some(idx) = game_state.graph.node_indices().next() {
-                // let mut algorithm = Dfs::new(idx);
-                // game_state.input_state = InputState::RunAlgorithm;
-                // algorithm.run_algorithm(&mut game_state.graph);
-                // algorithm.show_algorithm(&mut game_state.graph);
 
-                // game_state.add_algorithm(Box::new(algorithm));
-            }
-        }
         // This is done dirty, just to be able to quickly build nontrivial graph.
         if ui.button("clique").clicked() {
             for node in game_state.graph.node_indices() {
@@ -93,4 +127,29 @@ pub fn graph_params_editor_ui(
             }
         }
     });
+}
+
+fn algorithm_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    egui::Window::new("Edit").show(egui_ctx, |ui| {
+        if ui.button("dfs").clicked() {
+            if let Some(idx) = game_state.graph.node_indices().next() {
+                // let mut algorithm = Dfs::new(idx);
+                // game_state.input_state = InputState::RunAlgorithm;
+                // algorithm.run_algorithm(&mut game_state.graph);
+                // algorithm.show_algorithm(&mut game_state.graph);
+
+                // game_state.add_algorithm(Box::new(algorithm));
+            }
+        }
+    });
+}
+
+// Disable editing when algorithm is running, disable algorithm when editing
+pub fn create_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    graph_generator_ui(game_state, ctx, egui_ctx);
+    if matches!(game_state.ui_data.state, UiState::Edit) {
+        graph_editor_ui(game_state, ctx, egui_ctx);
+    } else {
+        algorithm_ui(game_state, ctx, egui_ctx);
+    }
 }

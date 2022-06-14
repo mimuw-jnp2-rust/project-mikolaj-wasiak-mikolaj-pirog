@@ -14,13 +14,13 @@ use crate::graph::edge::{
 };
 use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
-use crate::input::input_state::InputState;
-use crate::input::input_state::MoveData;
+use crate::input::input_state::{InputState, StateData};
 use crate::step_algorithms::AlgorithmResult;
-use crate::ui::ui_drawing::graph_params_editor_ui;
+use crate::ui::ui_drawing::create_ui;
+use crate::ui::ui_drawing::UiData;
 
-pub const SCREEN_WIDTH: f32 = 640.;
-pub const SCREEN_HEIGHT: f32 = 480.;
+pub const SCREEN_WIDTH: f32 = 1280.;
+pub const SCREEN_HEIGHT: f32 = 800.;
 
 pub struct GameState {
     pub graph: Graph,
@@ -30,14 +30,7 @@ pub struct GameState {
 
     scaler: ScreenScaler,
 
-    // This maybe should be under ui struct
-    // But we don't have ui struct
-    //   force:
-    push_conf: PushForceConfig,
-    pull_conf: PullForceConfig,
-    //   random:
-    pub node_count: u32,
-    pub edge_count: u32,
+    pub ui_data: UiData,
 
     algorithm: Option<AlgorithmResult>,
 }
@@ -46,7 +39,7 @@ impl GameState {
     pub fn new(ctx: &mut Context) -> GameState {
         GameState {
             graph: Graph::new(),
-            input_state: InputState::Move(MoveData::default()),
+            input_state: InputState::Move(StateData::default()),
             camera: Camera::new(SCREEN_WIDTH, SCREEN_HEIGHT),
             scaler: ScreenScaler::with_window_size(
                 ctx,
@@ -55,13 +48,7 @@ impl GameState {
                 ScalingMode::ShowAllPixelPerfect,
             )
             .unwrap(),
-            push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
-            pull_conf: PullForceConfig::new(
-                PULL_FORCE_MIN_DISTANCE,
-                PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
-            ),
-            node_count: 10,
-            edge_count: 15,
+            ui_data: UiData::new(),
             algorithm: None,
         }
     }
@@ -71,24 +58,24 @@ impl GameState {
     }
 
     pub fn push_conf(&self) -> PushForceConfig {
-        self.push_conf
+        self.ui_data.push_conf
     }
 
     pub fn pull_conf(&self) -> PullForceConfig {
-        self.pull_conf
+        self.ui_data.pull_conf
     }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
     fn ui(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
-        graph_params_editor_ui(self, ctx, egui_ctx);
+        create_ui(self, ctx, egui_ctx);
 
         Ok(())
     }
 
     fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
         self.graph
-            .update(ctx, egui_ctx, &self.push_conf, &self.pull_conf);
+            .update(ctx, egui_ctx, &self.push_conf(), &self.pull_conf());
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);
@@ -126,14 +113,6 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             button: MouseButton::Left,
         } = &event
         {
-            if matches!(self.input_state, InputState::RunAlgorithm) {
-                if let Some(node_idx) = self
-                    .graph
-                    .get_node_from_point(self.camera.mouse_position(ctx))
-                {
-                    // self.run_algorithm(node_idx);
-                }
-            }
             self.input_state
                 .on_left_click(ctx, &mut self.graph, self.camera.mouse_position(ctx));
         }

@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use egui_tetra::egui;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
