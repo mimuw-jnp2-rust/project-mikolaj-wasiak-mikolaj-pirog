@@ -82,7 +82,7 @@ impl VisibleNode {
                 if matches!(self.highlight, NodeHighlight::Highlighted) || self.contains(position) {
                     HIGHLIGHT_SCALE
                 } else {
-            Vec2::one()
+                    Vec2::one()
                 },
             )
             .position(self.position)
@@ -119,7 +119,7 @@ impl VisibleNode {
         }
         let push_direction = direction_to.normalized();
         let force_div = 1. - self.position().distance(point) / push_conf.distance();
-        
+
         if force_div <= 0. {
             return;
         }
@@ -136,14 +136,10 @@ impl VisibleNode {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &egui::CtxRef,
-        mouse_position: Vec2<f32>,
-    ) {
+    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) {
         let params = self.get_draw_params(mouse_position);
-        self.circle.draw(ctx, params.clone().color(self.get_color()));
+        self.circle
+            .draw(ctx, params.clone().color(self.get_color()));
         //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
         self.border.draw(ctx, params.color(self.border_color));
     }

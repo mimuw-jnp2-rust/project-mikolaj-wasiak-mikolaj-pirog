@@ -11,7 +11,10 @@ use tetra::Context;
 use edge::Edge;
 use node::VisibleNode;
 
-use self::{gravity::{PullForceConfig, PushForceConfig}, node::{Node, NodeState}};
+use self::{
+    gravity::{PullForceConfig, PushForceConfig},
+    node::{Node, NodeState},
+};
 
 pub mod edge;
 pub mod gravity;
@@ -144,7 +147,7 @@ impl GraphOnCanvas for Graph {
     fn update(
         &mut self,
         ctx: &mut Context,
-        egui_ctx: &CtxRef,
+        _egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
     ) {

@@ -3,8 +3,6 @@ use egui_tetra::egui;
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
-use crate::step_algorithms::algorithm::Algorithm;
-use crate::step_algorithms::dfs::Dfs;
 use crate::GameState;
 use tetra::Context;
 

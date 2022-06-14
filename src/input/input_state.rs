@@ -25,12 +25,7 @@ pub enum InputState {
 }
 
 impl InputState {
-    pub fn on_left_click(
-        &mut self,
-        ctx: &mut Context,
-        graph: &mut Graph,
-        position: Vec2<f32>,
-    ) {
+    pub fn on_left_click(&mut self, ctx: &mut Context, graph: &mut Graph, position: Vec2<f32>) {
         match self {
             InputState::Add => {
                 graph.add_node(VisibleNode::new(ctx, position));
@@ -74,17 +69,11 @@ impl InputState {
                     }
                 }
             },
-            InputState::RunAlgorithm => {},
+            InputState::RunAlgorithm => {}
         }
-
     }
 
-    pub fn on_mouse_drag(
-        &mut self,
-        ctx: &mut Context,
-        graph: &mut Graph,
-        position: Vec2<f32>,
-    ) {
+    pub fn on_mouse_drag(&mut self, ctx: &mut Context, graph: &mut Graph, position: Vec2<f32>) {
         if let InputState::Move(data) = self {
             match data.selected_node {
                 None => (),

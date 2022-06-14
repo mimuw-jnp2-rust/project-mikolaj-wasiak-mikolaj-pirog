@@ -48,7 +48,8 @@ pub enum AlgorithmStep {
 }
 
 pub trait Algorithm<N: Node, E> {
-    fn run_algorithm(self, graph: &mut GenericGraph<N, E>, start_idx: NodeIndex) -> AlgorithmResult;
+    fn run_algorithm(self, graph: &mut GenericGraph<N, E>, start_idx: NodeIndex)
+        -> AlgorithmResult;
 }
 
 pub struct AlgorithmResult {
@@ -69,10 +70,6 @@ impl AlgorithmResult {
 
     pub fn get_steps(&self) -> &VecDeque<AlgorithmStep> {
         &self.steps
-    }
-
-    fn timer(&self) -> &Timer {
-        &self.timer
     }
 
     fn timer_mut(&mut self) -> &mut Timer {

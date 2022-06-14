@@ -30,11 +30,7 @@ pub struct Edge {
 }
 
 impl Edge {
-    fn create_arrow(
-        ctx: &mut Context,
-        from: Position,
-        to: Position,
-    ) -> Mesh {
+    fn create_arrow(ctx: &mut Context, from: Position, to: Position) -> Mesh {
         let (from, to) = (
             Position::lerp(from, to, (1. - BASE_ARROW_SCALE) / 2.),
             Position::lerp(from, to, (1. + BASE_ARROW_SCALE) / 2.),
@@ -46,10 +42,12 @@ impl Edge {
         let mut builder = GeometryBuilder::new();
 
         builder.polyline(BASE_STROKE_WIDTH, &[from, to]).unwrap();
-        builder.polyline(
-            BASE_STROKE_WIDTH,
-            &[left_arrow_point, to, right_arrow_point],
-        ).unwrap();
+        builder
+            .polyline(
+                BASE_STROKE_WIDTH,
+                &[left_arrow_point, to, right_arrow_point],
+            )
+            .unwrap();
         builder.build_mesh(ctx).unwrap()
     }
 
@@ -63,12 +61,7 @@ impl Edge {
         }
     }
 
-    pub fn update_position(
-        &mut self,
-        ctx: &mut Context,
-        from: Position,
-        to: Position,
-    ) {
+    pub fn update_position(&mut self, ctx: &mut Context, from: Position, to: Position) {
         self.from = from;
         self.to = to;
         self.shape = Edge::create_arrow(ctx, from, to);

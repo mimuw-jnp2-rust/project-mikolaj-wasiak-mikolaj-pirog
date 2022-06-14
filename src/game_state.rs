@@ -10,14 +10,12 @@ use tetra::Context;
 use crate::camera_handling::camera_state::CameraState;
 use crate::graph::edge::{
     PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
-    PUSH_FORCE_FORCE, Edge,
+    PUSH_FORCE_FORCE,
 };
 use crate::graph::gravity::{PullForceConfig, PushForceConfig};
-use crate::graph::node::VisibleNode;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
 use crate::input::input_state::MoveData;
-use crate::step_algorithms::Algorithm;
 use crate::step_algorithms::AlgorithmResult;
 use crate::ui::ui_drawing::graph_params_editor_ui;
 
@@ -79,10 +77,6 @@ impl GameState {
     pub fn pull_conf(&self) -> PullForceConfig {
         self.pull_conf
     }
-
-    fn run_algorithm(&mut self, alg: Box<dyn Algorithm<VisibleNode, Edge>>) {
-
-    }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
@@ -133,7 +127,10 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         } = &event
         {
             if matches!(self.input_state, InputState::RunAlgorithm) {
-                if let Some(node_idx) = self.graph.get_node_from_point(self.camera.mouse_position(ctx)) {
+                if let Some(node_idx) = self
+                    .graph
+                    .get_node_from_point(self.camera.mouse_position(ctx))
+                {
                     // self.run_algorithm(node_idx);
                 }
             }
