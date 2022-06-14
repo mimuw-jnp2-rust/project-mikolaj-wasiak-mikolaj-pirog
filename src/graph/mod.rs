@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use egui_tetra::egui::CtxRef;
 use egui_tetra::State;
 use petgraph::{
@@ -13,7 +11,7 @@ use tetra::Context;
 use edge::Edge;
 use node::VisibleNode;
 
-use self::gravity::{PullForceConfig, PushForceConfig};
+use self::{gravity::{PullForceConfig, PushForceConfig}, node::{Node, NodeState}};
 
 pub mod edge;
 pub mod gravity;
@@ -37,8 +35,10 @@ pub trait GraphOnCanvas {
         direction: petgraph::EdgeDirection,
     );
 
-    fn push_force(&mut self, ctx: &mut Context, egui_ctx: &CtxRef, push_conf: &PushForceConfig);
-    fn pull_force(&mut self, ctx: &mut Context, egui_ctx: &CtxRef, pull_conf: &PullForceConfig);
+    fn push_force(&mut self, push_conf: &PushForceConfig);
+    fn pull_force(&mut self, pull_conf: &PullForceConfig);
+
+    fn reset_state(&mut self);
 
     fn update(
         &mut self,
@@ -106,7 +106,7 @@ impl GraphOnCanvas for Graph {
         }
     }
 
-    fn push_force(&mut self, _ctx: &mut Context, _egui_ctx: &CtxRef, push_conf: &PushForceConfig) {
+    fn push_force(&mut self, push_conf: &PushForceConfig) {
         for idx in self.node_indices() {
             for other_idx in self.node_indices() {
                 if idx == other_idx {
@@ -123,7 +123,7 @@ impl GraphOnCanvas for Graph {
         }
     }
 
-    fn pull_force(&mut self, _ctx: &mut Context, _egui_ctx: &CtxRef, pull_conf: &PullForceConfig) {
+    fn pull_force(&mut self, pull_conf: &PullForceConfig) {
         for idx in self.node_indices() {
             let mut result = Position::zero();
 
@@ -148,8 +148,8 @@ impl GraphOnCanvas for Graph {
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
     ) {
-        self.push_force(ctx, egui_ctx, push_conf);
-        self.pull_force(ctx, egui_ctx, pull_conf);
+        self.push_force(push_conf);
+        self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
             self.node_weight_mut(node_idx)
@@ -161,18 +161,23 @@ impl GraphOnCanvas for Graph {
         }
     }
 
-    fn draw(
-        &mut self,
-        mouse_position: Vec2<f32>,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-    ) {
+    fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef) {
         for edge in self.edge_weights_mut() {
             edge.draw(ctx, egui_ctx);
         }
 
         for node in self.node_weights_mut() {
             node.draw(ctx, egui_ctx, mouse_position);
+        }
+    }
+
+    fn reset_state(&mut self) {
+        for node in self.node_weights_mut() {
+            node.set_ignore_force(false);
+            node.set_state(NodeState::NotVisited);
+        }
+        for edge in self.edge_weights_mut() {
+            edge.reset_state();
         }
     }
 }

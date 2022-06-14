@@ -1,12 +1,15 @@
 use std::collections::VecDeque;
 
-use petgraph::Directed;
 use petgraph::graph::{EdgeIndex, NodeIndex};
+use petgraph::Directed;
+
+use crate::graph::node::{Node, NodeState};
+
 use tetra::Context;
 
-use crate::graph::node::{Node, VisibleNode, NodeState};
-use crate::graph::edge::Edge;
-use crate::step_algorithms::timer::Timer;
+use crate::graph::{edge::Edge, node::VisibleNode};
+
+use super::Timer;
 
 pub type GenericGraph<N, E> = petgraph::Graph<N, E, Directed, u32>;
 
@@ -45,39 +48,45 @@ pub enum AlgorithmStep {
 }
 
 pub trait Algorithm<N: Node, E> {
-    fn start_idx(&self) -> NodeIndex;
-
-    fn steps(&self) -> &VecDeque<AlgorithmStep>;
-
-    fn steps_mut(&mut self) -> &mut VecDeque<AlgorithmStep>;
-
-    fn add_step(&mut self, algo_step: AlgorithmStep) {
-        self.steps_mut().push_back(algo_step);
-    }
-
-    fn reset_algorithm(&mut self, graph: &mut GenericGraph<N, E>) {
-        for node in graph.node_weights_mut() {
-            node.set_state(NodeState::NotVisited);
-        }
-        
-    }
-
-    fn run_algorithm(&mut self, graph: &mut GenericGraph<N, E>);
+    fn run_algorithm(self, graph: &mut GenericGraph<N, E>, start_idx: NodeIndex) -> AlgorithmResult;
 }
 
-pub trait VisibleAlgorithm: Algorithm<VisibleNode, Edge> {
-    fn timer(&self) -> &Timer;
+pub struct AlgorithmResult {
+    start_idx: NodeIndex,
+    steps: VecDeque<AlgorithmStep>,
+    timer: Timer,
+}
 
-    fn timer_mut(&mut self) -> &mut Timer;
+impl AlgorithmResult {
+    pub fn from_alg(steps: VecDeque<AlgorithmStep>, start_idx: NodeIndex) -> AlgorithmResult {
+        let timer = Timer::new(0.5, true);
+        AlgorithmResult {
+            start_idx,
+            steps,
+            timer,
+        }
+    }
+
+    pub fn get_steps(&self) -> &VecDeque<AlgorithmStep> {
+        &self.steps
+    }
+
+    fn timer(&self) -> &Timer {
+        &self.timer
+    }
+
+    fn timer_mut(&mut self) -> &mut Timer {
+        &mut self.timer
+    }
 
     fn start_timer(&mut self) {
         self.timer_mut().start();
     }
 
-    fn update(&mut self, ctx: &mut Context, graph: &mut GenericGraph<VisibleNode, Edge>) {
+    pub fn update(&mut self, ctx: &mut Context, graph: &mut GenericGraph<VisibleNode, Edge>) {
         if self.timer_mut().update(ctx) {
             println!("timer ticked");
-            if let Some(alg_step) = self.steps_mut().pop_front() {
+            if let Some(alg_step) = self.steps.pop_front() {
                 match alg_step {
                     AlgorithmStep::Node(step) => {
                         if let Some(node) = graph.node_weight_mut(step.idx) {
@@ -93,7 +102,7 @@ pub trait VisibleAlgorithm: Algorithm<VisibleNode, Edge> {
             } else {
                 self.timer_mut().stop();
 
-                if let Some(node) = graph.node_weight_mut(self.start_idx()) {
+                if let Some(node) = graph.node_weight_mut(self.start_idx) {
                     node.set_ignore_force(false)
                 }
             }
@@ -101,12 +110,12 @@ pub trait VisibleAlgorithm: Algorithm<VisibleNode, Edge> {
     }
 
     fn turn_off_start_node_gravity(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
-        if let Some(node) = graph.node_weight_mut(self.start_idx()) {
+        if let Some(node) = graph.node_weight_mut(self.start_idx) {
             node.set_ignore_force(true)
         }
     }
 
-    fn show_algorithm(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
+    pub fn show_algorithm(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
         for node in graph.node_weights_mut() {
             node.set_state(NodeState::NotVisited);
         }
@@ -119,12 +128,4 @@ pub trait VisibleAlgorithm: Algorithm<VisibleNode, Edge> {
         self.start_timer();
         self.turn_off_start_node_gravity(graph);
     }
-
-    fn reset_algorithm(&mut self, graph: &mut GenericGraph<VisibleNode, Edge>) {
-        Algorithm::reset_algorithm(self, graph);
-        
-        for edge in graph.edge_weights_mut() {
-            edge.enable_edge();
-        }
-    }
-} 
+}

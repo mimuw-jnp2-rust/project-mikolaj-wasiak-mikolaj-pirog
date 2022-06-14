@@ -10,12 +10,15 @@ use tetra::Context;
 use crate::camera_handling::camera_state::CameraState;
 use crate::graph::edge::{
     PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
-    PUSH_FORCE_FORCE,
+    PUSH_FORCE_FORCE, Edge,
 };
 use crate::graph::gravity::{PullForceConfig, PushForceConfig};
+use crate::graph::node::VisibleNode;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::InputState;
-use crate::step_algorithms::algorithm::VisibleAlgorithm;
+use crate::input::input_state::MoveData;
+use crate::step_algorithms::Algorithm;
+use crate::step_algorithms::AlgorithmResult;
 use crate::ui::ui_drawing::graph_params_editor_ui;
 
 pub const SCREEN_WIDTH: f32 = 640.;
@@ -38,21 +41,22 @@ pub struct GameState {
     pub node_count: u32,
     pub edge_count: u32,
 
-    algorithm: Option<Box<dyn VisibleAlgorithm>>,
+    algorithm: Option<AlgorithmResult>,
 }
 
 impl GameState {
-    pub fn new(ctx: &mut Context) -> tetra::Result<GameState> {
-        Ok(GameState {
+    pub fn new(ctx: &mut Context) -> GameState {
+        GameState {
             graph: Graph::new(),
-            input_state: InputState::Add,
+            input_state: InputState::Move(MoveData::default()),
             camera: Camera::new(SCREEN_WIDTH, SCREEN_HEIGHT),
             scaler: ScreenScaler::with_window_size(
                 ctx,
                 SCREEN_WIDTH as i32,
                 SCREEN_HEIGHT as i32,
                 ScalingMode::ShowAllPixelPerfect,
-            )?,
+            )
+            .unwrap(),
             push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
             pull_conf: PullForceConfig::new(
                 PULL_FORCE_MIN_DISTANCE,
@@ -61,11 +65,11 @@ impl GameState {
             node_count: 10,
             edge_count: 15,
             algorithm: None,
-        })
+        }
     }
 
-    pub fn add_algorithm(&mut self, algorithm: Box<dyn VisibleAlgorithm>) {
-        self.algorithm = Some(algorithm);
+    pub fn add_algorithm(&mut self, algorithm_res: AlgorithmResult) {
+        self.algorithm = Some(algorithm_res);
     }
 
     pub fn push_conf(&self) -> PushForceConfig {
@@ -74,6 +78,10 @@ impl GameState {
 
     pub fn pull_conf(&self) -> PullForceConfig {
         self.pull_conf
+    }
+
+    fn run_algorithm(&mut self, alg: Box<dyn Algorithm<VisibleNode, Edge>>) {
+
     }
 }
 
@@ -116,22 +124,21 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         event: tetra::Event,
     ) -> Result<(), Box<dyn Error>> {
         if let tetra::Event::MouseMoved { .. } = &event {
-            self.input_state.on_mouse_drag(
-                ctx,
-                &mut self.graph,
-                self.camera.mouse_position(ctx),
-            )?;
+            self.input_state
+                .on_mouse_drag(ctx, &mut self.graph, self.camera.mouse_position(ctx));
         }
 
         if let tetra::Event::MouseButtonPressed {
             button: MouseButton::Left,
         } = &event
         {
-            self.input_state.on_left_click(
-                ctx,
-                &mut self.graph,
-                self.camera.mouse_position(ctx),
-            )?;
+            if matches!(self.input_state, InputState::RunAlgorithm) {
+                if let Some(node_idx) = self.graph.get_node_from_point(self.camera.mouse_position(ctx)) {
+                    // self.run_algorithm(node_idx);
+                }
+            }
+            self.input_state
+                .on_left_click(ctx, &mut self.graph, self.camera.mouse_position(ctx));
         }
 
         self.camera.handle_camera_events(event)

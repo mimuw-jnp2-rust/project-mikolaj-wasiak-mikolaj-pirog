@@ -1,10 +1,10 @@
 use egui_tetra::egui;
 
-use crate::graph::GraphOnCanvas;
 use crate::graph::random::generate;
+use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{ConnectData, InputState, MoveData};
+use crate::step_algorithms::algorithm::Algorithm;
 use crate::step_algorithms::dfs::Dfs;
-use crate::step_algorithms::algorithm::{Algorithm, VisibleAlgorithm};
 use crate::GameState;
 use tetra::Context;
 
@@ -24,7 +24,12 @@ pub fn graph_params_editor_ui(
         });
         if ui.button("Generate").clicked() {
             // TODO: Un Unwrap
-            generate(ctx, &mut game_state.graph, game_state.node_count, game_state.edge_count);
+            generate(
+                ctx,
+                &mut game_state.graph,
+                game_state.node_count,
+                game_state.edge_count,
+            );
         }
     });
 
@@ -71,11 +76,12 @@ pub fn graph_params_editor_ui(
         });
         if ui.button("dfs").clicked() {
             if let Some(idx) = game_state.graph.node_indices().next() {
-                let mut algorithm = Dfs::new(idx);
-                algorithm.run_algorithm(&mut game_state.graph);
-                algorithm.show_algorithm(&mut game_state.graph);
+                // let mut algorithm = Dfs::new(idx);
+                // game_state.input_state = InputState::RunAlgorithm;
+                // algorithm.run_algorithm(&mut game_state.graph);
+                // algorithm.show_algorithm(&mut game_state.graph);
 
-                game_state.add_algorithm(Box::new(algorithm));
+                // game_state.add_algorithm(Box::new(algorithm));
             }
         }
         // This is done dirty, just to be able to quickly build nontrivial graph.
@@ -83,9 +89,7 @@ pub fn graph_params_editor_ui(
             for node in game_state.graph.node_indices() {
                 for node_other in game_state.graph.node_indices() {
                     if node != node_other {
-                        game_state
-                            .graph
-                            .connect_nodes(ctx, node, node_other);
+                        game_state.graph.connect_nodes(ctx, node, node_other);
                     }
                 }
             }

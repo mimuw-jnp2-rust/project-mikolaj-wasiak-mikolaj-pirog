@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use petgraph::graph::NodeIndex;
 use tetra::math::Vec2;
 use tetra::Context;
@@ -23,6 +21,7 @@ pub enum InputState {
     Remove,
     Move(MoveData),
     Connect(ConnectData),
+    RunAlgorithm,
 }
 
 impl InputState {
@@ -31,7 +30,7 @@ impl InputState {
         ctx: &mut Context,
         graph: &mut Graph,
         position: Vec2<f32>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) {
         match self {
             InputState::Add => {
                 graph.add_node(VisibleNode::new(ctx, position));
@@ -75,9 +74,9 @@ impl InputState {
                     }
                 }
             },
+            InputState::RunAlgorithm => {},
         }
 
-        Ok(())
     }
 
     pub fn on_mouse_drag(
@@ -85,15 +84,13 @@ impl InputState {
         ctx: &mut Context,
         graph: &mut Graph,
         position: Vec2<f32>,
-    ) -> Result<(), Box<dyn Error>> {
+    ) {
         if let InputState::Move(data) = self {
             match data.selected_node {
                 None => (),
                 Some(node_idx) => graph.move_node(ctx, node_idx, position),
             }
         }
-
-        Ok(())
     }
 }
 
@@ -105,6 +102,7 @@ impl PartialEq for InputState {
                 | (InputState::Remove, InputState::Remove)
                 | (InputState::Move(_), InputState::Move(_))
                 | (InputState::Connect(_), InputState::Connect(_))
+                | (InputState::RunAlgorithm, InputState::RunAlgorithm)
         )
     }
 }

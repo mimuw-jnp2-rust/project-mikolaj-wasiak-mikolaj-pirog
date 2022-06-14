@@ -37,7 +37,6 @@ pub struct VisibleNode {
     radius: f32,
 
     border_color: Color,
-    color: Color,
 
     highlight: NodeHighlight,
     algorithm_state: NodeState,
@@ -56,7 +55,6 @@ impl VisibleNode {
             position,
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
-            color: Color::WHITE,
             current_force: Position::zero(),
             ignore_force: false,
             border: Mesh::circle(
@@ -84,7 +82,7 @@ impl VisibleNode {
                 if matches!(self.highlight, NodeHighlight::Highlighted) || self.contains(position) {
                     HIGHLIGHT_SCALE
                 } else {
-                    Vec2::one()
+            Vec2::one()
                 },
             )
             .position(self.position)
@@ -121,7 +119,7 @@ impl VisibleNode {
         }
         let push_direction = direction_to.normalized();
         let force_div = 1. - self.position().distance(point) / push_conf.distance();
-
+        
         if force_div <= 0. {
             return;
         }
@@ -145,13 +143,9 @@ impl VisibleNode {
         mouse_position: Vec2<f32>,
     ) {
         let params = self.get_draw_params(mouse_position);
-        self.circle.draw(ctx, params.clone().color(self.color));
+        self.circle.draw(ctx, params.clone().color(self.get_color()));
         //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
         self.border.draw(ctx, params.color(self.border_color));
-    }
-
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color;
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
