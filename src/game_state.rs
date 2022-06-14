@@ -8,7 +8,6 @@ use tetra::input::MouseButton;
 use tetra::Context;
 
 use crate::camera_handling::camera_state::CameraState;
-use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{InputState, StateData};
 use crate::step_algorithms::AlgorithmResult;
@@ -53,14 +52,6 @@ impl GameState {
         algorithm_res.show_algorithm(&mut self.graph);
         self.algorithm = Some(algorithm_res);
     }
-
-    pub fn push_conf(&self) -> PushForceConfig {
-        self.ui_data.push_conf
-    }
-
-    pub fn pull_conf(&self) -> PullForceConfig {
-        self.ui_data.pull_conf
-    }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
@@ -71,8 +62,12 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
     }
 
     fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
-        self.graph
-            .update(ctx, egui_ctx, &self.push_conf(), &self.pull_conf());
+        self.graph.update(
+            ctx,
+            egui_ctx,
+            &self.ui_data.push_conf(),
+            &self.ui_data.pull_conf(),
+        );
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);

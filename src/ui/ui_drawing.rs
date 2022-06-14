@@ -22,12 +22,12 @@ pub struct UiData {
     state: UiState,
 
     //   force:
-    pub push_conf: PushForceConfig,
-    pub pull_conf: PullForceConfig,
+    push_conf: PushForceConfig,
+    pull_conf: PullForceConfig,
 
     //   random-gen:
-    pub node_count: u32,
-    pub edge_count: u32,
+    node_count: u32,
+    edge_count: u32,
 }
 
 impl UiData {
@@ -42,6 +42,14 @@ impl UiData {
             edge_count: 15,
             state: UiState::Edit,
         }
+    }
+
+    pub fn push_conf(&self) -> PushForceConfig {
+        self.push_conf
+    }
+
+    pub fn pull_conf(&self) -> PullForceConfig {
+        self.pull_conf
     }
 }
 
@@ -108,23 +116,27 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
         ui.label("Push:");
         ui.horizontal(|ui| {
             ui.label("Value");
-            ui.add(egui::DragValue::new(&mut game_state.push_conf().force()));
+            ui.add(egui::DragValue::new(
+                &mut game_state.ui_data.push_conf().force(),
+            ));
         });
         ui.horizontal(|ui| {
             ui.label("Distance");
-            ui.add(egui::DragValue::new(&mut game_state.push_conf().distance()));
+            ui.add(egui::DragValue::new(
+                &mut game_state.ui_data.push_conf().distance(),
+            ));
         });
         ui.label("Pull:");
         ui.horizontal(|ui| {
             ui.label("Value");
             ui.add(egui::DragValue::new(
-                &mut game_state.pull_conf().force_at_twice_distance(),
+                &mut game_state.ui_data.pull_conf().force_at_twice_distance(),
             ));
         });
         ui.horizontal(|ui| {
             ui.label("Min Distance");
             ui.add(egui::DragValue::new(
-                &mut game_state.pull_conf().min_distance(),
+                &mut game_state.ui_data.pull_conf().min_distance(),
             ));
         });
 
