@@ -8,7 +8,7 @@ use crate::graph::{node::VisibleNode, Graph};
 
 #[derive(Default)]
 pub struct StateData {
-    selected_node: Option<NodeIndex<u32>>,
+    pub selected_node: Option<NodeIndex<u32>>,
 }
 
 pub enum InputState {
@@ -48,9 +48,9 @@ impl InputState {
             },
             InputState::Connect(data) => match data.selected_node {
                 Some(from) => {
-                    graph
-                        .get_node_from_point(position)
-                        .map(|to| graph.connect_nodes(ctx, from, to));
+                    if let Some(to) = graph.get_node_from_point(position) {
+                        graph.connect_nodes(ctx, from, to)
+                    }
                     if let Some(node) = graph.node_weight_mut(from) {
                         node.set_highlight(NodeHighlight::Normal)
                     }
@@ -69,15 +69,15 @@ impl InputState {
             },
             InputState::Select(data) => {
                 if let Some(idx) = data.selected_node {
-                    graph
-                        .node_weight_mut(idx)
-                        .map(|node| node.set_highlight(NodeHighlight::Normal));
+                    if let Some(node) = graph.node_weight_mut(idx) {
+                        node.set_highlight(NodeHighlight::Normal)
+                    }
                 }
                 data.selected_node = graph.get_node_from_point(position);
                 if let Some(idx) = data.selected_node {
-                    graph
-                        .node_weight_mut(idx)
-                        .map(|node| node.set_highlight(NodeHighlight::Highlighted));
+                    if let Some(node) = graph.node_weight_mut(idx) {
+                        node.set_highlight(NodeHighlight::Highlighted)
+                    }
                 }
             }
         }

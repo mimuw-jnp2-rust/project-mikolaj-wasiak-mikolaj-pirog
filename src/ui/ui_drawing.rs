@@ -1,4 +1,4 @@
-use egui_tetra::egui;
+use egui_tetra::egui::{self, Button};
 
 use crate::graph::edge::{
     PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
@@ -8,6 +8,7 @@ use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
+use crate::step_algorithms::{Algorithm, Dfs};
 use crate::GameState;
 use tetra::Context;
 
@@ -44,7 +45,13 @@ impl UiData {
     }
 }
 
-fn graph_generator_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+impl Default for UiData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     egui::Window::new("Controls").show(egui_ctx, |ui| {
         ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
         ui.selectable_value(
@@ -56,6 +63,9 @@ fn graph_generator_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &
 }
 
 fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    if matches!(game_state.input_state, InputState::Select(_)) {
+        game_state.input_state = InputState::Move(StateData::default());
+    }
     egui::Window::new("Edit").show(egui_ctx, |ui| {
         ui.horizontal(|ui| {
             ui.label("Nodes");
@@ -129,16 +139,26 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
     });
 }
 
-fn algorithm_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
-    egui::Window::new("Edit").show(egui_ctx, |ui| {
-        if ui.button("dfs").clicked() {
-            if let Some(idx) = game_state.graph.node_indices().next() {
-                // let mut algorithm = Dfs::new(idx);
-                // game_state.input_state = InputState::RunAlgorithm;
-                // algorithm.run_algorithm(&mut game_state.graph);
-                // algorithm.show_algorithm(&mut game_state.graph);
+fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
+    if !matches!(game_state.input_state, InputState::Select(_)) {
+        game_state.input_state = InputState::Select(StateData::default());
+    }
 
-                // game_state.add_algorithm(Box::new(algorithm));
+    let idx_opt = if let InputState::Select(data) = &mut game_state.input_state {
+        data.selected_node
+    } else {
+        None
+    };
+
+    egui::Window::new("Show algorithms").show(egui_ctx, |ui| {
+        if ui
+            .add_enabled(matches!(idx_opt, Some(_)), Button::new("dfs"))
+            .clicked()
+        {
+            if let Some(idx) = idx_opt {
+                let algorithm = Dfs::new();
+                let result = algorithm.run_algorithm(&mut game_state.graph, idx);
+                game_state.add_algorithm(result);
             }
         }
     });
@@ -146,7 +166,7 @@ fn algorithm_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::
 
 // Disable editing when algorithm is running, disable algorithm when editing
 pub fn create_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
-    graph_generator_ui(game_state, ctx, egui_ctx);
+    controls_ui(game_state, ctx, egui_ctx);
     if matches!(game_state.ui_data.state, UiState::Edit) {
         graph_editor_ui(game_state, ctx, egui_ctx);
     } else {

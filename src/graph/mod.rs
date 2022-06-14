@@ -155,12 +155,12 @@ impl GraphOnCanvas for Graph {
         self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
-            self.node_weight_mut(node_idx)
-                .map(|node| {
-                    node.consume_force(ctx);
-                    node.position()
-                })
-                .map(|pos| self.move_node(ctx, node_idx, pos));
+            if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
+                node.consume_force(ctx);
+                node.position()
+            }) {
+                self.move_node(ctx, node_idx, pos)
+            }
         }
     }
 

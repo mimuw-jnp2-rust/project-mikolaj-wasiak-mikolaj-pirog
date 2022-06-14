@@ -8,10 +8,6 @@ use tetra::input::MouseButton;
 use tetra::Context;
 
 use crate::camera_handling::camera_state::CameraState;
-use crate::graph::edge::{
-    PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
-    PUSH_FORCE_FORCE,
-};
 use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{InputState, StateData};
@@ -53,7 +49,8 @@ impl GameState {
         }
     }
 
-    pub fn add_algorithm(&mut self, algorithm_res: AlgorithmResult) {
+    pub fn add_algorithm(&mut self, mut algorithm_res: AlgorithmResult) {
+        algorithm_res.show_algorithm(&mut self.graph);
         self.algorithm = Some(algorithm_res);
     }
 
