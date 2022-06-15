@@ -10,7 +10,7 @@ use tetra::Context;
 use crate::camera_handling::camera_state::CameraState;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{InputState, StateData};
-use crate::step_algorithms::AlgorithmResult;
+use crate::step_algorithms::StepAlgorithmResult;
 use crate::ui::ui_drawing::create_ui;
 use crate::ui::ui_drawing::UiData;
 
@@ -27,7 +27,7 @@ pub struct GameState {
 
     pub ui_data: UiData,
 
-    algorithm: Option<AlgorithmResult>,
+    algorithm: Option<StepAlgorithmResult>,
 }
 
 impl GameState {
@@ -48,7 +48,7 @@ impl GameState {
         }
     }
 
-    pub fn add_algorithm(&mut self, mut algorithm_res: AlgorithmResult) {
+    pub fn add_algorithm(&mut self, mut algorithm_res: StepAlgorithmResult) {
         algorithm_res.show_algorithm(&mut self.graph);
         self.algorithm = Some(algorithm_res);
     }

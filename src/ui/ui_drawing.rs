@@ -8,7 +8,7 @@ use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
-use crate::step_algorithms::{Algorithm, Dfs};
+use crate::step_algorithms::{StepAlgorithm, Dfs};
 use crate::GameState;
 use tetra::Context;
 
@@ -175,7 +175,7 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
             if let Some(idx) = idx_opt {
                 //game_state.graph.reset_state();
                 let algorithm = Dfs::from_graph(&game_state.graph);
-                let result = algorithm.run_algorithm(&game_state.graph, idx);
+                let result = algorithm.get_result(&game_state.graph, idx);
                 game_state.add_algorithm(result);
             }
         }

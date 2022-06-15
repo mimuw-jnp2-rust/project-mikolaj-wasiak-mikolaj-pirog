@@ -7,10 +7,10 @@ use petgraph::graph::NodeIndex;
 use petgraph::Direction;
 use tetra::graphics::Color;
 
-use super::Algorithm;
-use super::AlgorithmResult;
-use crate::step_algorithms::algorithm::AlgorithmStep;
-use crate::step_algorithms::algorithm::GenericGraph;
+use super::StepAlgorithm;
+use super::StepAlgorithmResult;
+use crate::step_algorithms::step_algorithm::Step;
+use crate::step_algorithms::step_algorithm::GenericGraph;
 
 #[derive(PartialEq, Debug)]
 pub enum NodeState {
@@ -31,8 +31,8 @@ impl NodeStep {
     }
 }
 
-impl AlgorithmStep for NodeStep {
-    fn step(&self, graph: &mut crate::graph::Graph) {
+impl Step for NodeStep {
+    fn apply_step(&self, graph: &mut crate::graph::Graph) {
         if let Some(node) = graph.node_weight_mut(self.idx) {
             node.set_color(match self.to_state {
                 NodeState::Visited => Color::GREEN,
@@ -54,8 +54,8 @@ impl EdgeStep {
     }
 }
 
-impl AlgorithmStep for EdgeStep {
-    fn step(&self, graph: &mut crate::graph::Graph) {
+impl Step for EdgeStep {
+    fn apply_step(&self, graph: &mut crate::graph::Graph) {
         if let Some(edge) = graph.edge_weight_mut(self.idx) {
             edge.enable_edge();
         }
@@ -63,18 +63,18 @@ impl AlgorithmStep for EdgeStep {
 }
 
 pub struct Dfs {
-    steps: VecDeque<Box<dyn AlgorithmStep>>,
+    steps: VecDeque<Box<dyn Step>>,
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E> Algorithm<N, E> for Dfs {
-    fn run_algorithm(
+impl<N, E> StepAlgorithm<N, E> for Dfs {
+    fn get_result(
         mut self,
         graph: &GenericGraph<N, E>,
         start_idx: NodeIndex,
-    ) -> AlgorithmResult {
+    ) -> StepAlgorithmResult {
         self.dfs(graph, start_idx);
-        AlgorithmResult::from_alg(self.steps, start_idx)
+        StepAlgorithmResult::from_steps(self.steps, start_idx)
     }
 }
 
@@ -124,9 +124,9 @@ impl Dfs {
 mod tests {
     use super::{Dfs, GenericGraph};
     use crate::step_algorithms::{
-        algorithm::AlgorithmStep,
+        step_algorithm::Step,
         dfs::{EdgeStep, NodeState, NodeStep},
-        Algorithm,
+        StepAlgorithm,
     };
     use std::collections::VecDeque;
 
@@ -137,9 +137,9 @@ mod tests {
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
 
-        let res = Dfs::from_graph(&mut graph).run_algorithm(&mut graph, a);
+        let res = Dfs::from_graph(&mut graph).get_result(&mut graph, a);
 
-        let mut desired = VecDeque::<Box<dyn AlgorithmStep>>::new();
+        let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
         desired.push_back(Box::new(EdgeStep::new(edge_idx)));
         desired.push_back(Box::new(NodeStep::new(b, NodeState::Queued)));

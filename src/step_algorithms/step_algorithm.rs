@@ -13,34 +13,34 @@ use super::Timer;
 pub type GenericGraph<N, E> = petgraph::Graph<N, E, Directed, u32>;
 
 #[dyn_partial_eq]
-pub trait AlgorithmStep: Any + Debug {
-    fn step(&self, graph: &mut Graph);
+pub trait Step: Any + Debug {
+    fn apply_step(&self, graph: &mut Graph);
 }
 
-pub trait Algorithm<N, E> {
-    fn run_algorithm(self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) -> AlgorithmResult;
+pub trait StepAlgorithm<N, E> {
+    fn get_result(self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) -> StepAlgorithmResult;
 }
 
-pub struct AlgorithmResult {
+pub struct StepAlgorithmResult {
     start_idx: NodeIndex,
-    steps: VecDeque<Box<dyn AlgorithmStep>>,
+    steps: VecDeque<Box<dyn Step>>,
     timer: Timer,
 }
 
-impl AlgorithmResult {
-    pub fn from_alg(
-        steps: VecDeque<Box<dyn AlgorithmStep>>,
+impl StepAlgorithmResult {
+    pub fn from_steps(
+        steps: VecDeque<Box<dyn Step>>,
         start_idx: NodeIndex,
-    ) -> AlgorithmResult {
+    ) -> StepAlgorithmResult {
         let timer = Timer::new(0.5, true);
-        AlgorithmResult {
+        StepAlgorithmResult {
             start_idx,
             steps,
             timer,
         }
     }
 
-    pub fn get_steps(&self) -> &VecDeque<Box<dyn AlgorithmStep>> {
+    pub fn get_steps(&self) -> &VecDeque<Box<dyn Step>> {
         &self.steps
     }
 
@@ -55,25 +55,23 @@ impl AlgorithmResult {
     pub fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
         if self.timer_mut().update(ctx) {
             if let Some(alg_step) = self.steps.pop_front() {
-                alg_step.step(graph);
+                alg_step.apply_step(graph);
             } else {
                 self.timer_mut().stop();
 
-                if let Some(node) = graph.node_weight_mut(self.start_idx) {
-                    node.set_ignore_force(false)
-                }
+                self.toggle_start_node_gravity_ignoring(graph, false);
             }
         }
     }
 
-    fn turn_off_start_node_gravity(&mut self, graph: &mut Graph) {
+    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut Graph, on : bool) {
         if let Some(node) = graph.node_weight_mut(self.start_idx) {
-            node.set_ignore_force(true)
+            node.set_ignore_force(on)
         }
     }
 
     pub fn show_algorithm(&mut self, graph: &mut Graph) {
-        graph.reset_state();
+        //graph.reset_state();
 
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
@@ -81,6 +79,6 @@ impl AlgorithmResult {
         }
 
         self.start_timer();
-        self.turn_off_start_node_gravity(graph);
+        self.toggle_start_node_gravity_ignoring(graph, true);
     }
 }
