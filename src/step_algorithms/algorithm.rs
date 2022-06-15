@@ -1,9 +1,9 @@
-use std::collections::VecDeque;
+use std::{any::Any, collections::VecDeque, fmt::Debug};
 
-use petgraph::graph::{EdgeIndex, NodeIndex};
+use dyn_partial_eq::dyn_partial_eq;
+use petgraph::graph::NodeIndex;
 use petgraph::Directed;
 
-use crate::graph::node::{Node, NodeState};
 use crate::graph::{Graph, GraphOnCanvas};
 
 use tetra::Context;
@@ -12,53 +12,26 @@ use super::Timer;
 
 pub type GenericGraph<N, E> = petgraph::Graph<N, E, Directed, u32>;
 
-#[derive(PartialEq, Debug)]
-pub struct NodeStep {
-    idx: NodeIndex,
-    to_state: NodeState,
+#[dyn_partial_eq]
+pub trait AlgorithmStep: Any + Debug {
+    fn step(&self, graph: &mut Graph);
 }
 
-impl NodeStep {
-    pub fn new(idx: NodeIndex, to_state: NodeState) -> NodeStep {
-        NodeStep { idx, to_state }
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub struct EdgeStep {
-    idx: EdgeIndex,
-}
-
-impl EdgeStep {
-    pub fn new(idx: EdgeIndex) -> EdgeStep {
-        EdgeStep { idx }
-    }
-
-    // This is unused now, but will be later.
-    pub fn _idx(&self) -> EdgeIndex {
-        self.idx
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub enum AlgorithmStep {
-    Node(NodeStep),
-    Edge(EdgeStep),
-}
-
-pub trait Algorithm<N: Node, E> {
-    fn run_algorithm(self, graph: &mut GenericGraph<N, E>, start_idx: NodeIndex)
-        -> AlgorithmResult;
+pub trait Algorithm<N, E> {
+    fn run_algorithm(self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) -> AlgorithmResult;
 }
 
 pub struct AlgorithmResult {
     start_idx: NodeIndex,
-    steps: VecDeque<AlgorithmStep>,
+    steps: VecDeque<Box<dyn AlgorithmStep>>,
     timer: Timer,
 }
 
 impl AlgorithmResult {
-    pub fn from_alg(steps: VecDeque<AlgorithmStep>, start_idx: NodeIndex) -> AlgorithmResult {
+    pub fn from_alg(
+        steps: VecDeque<Box<dyn AlgorithmStep>>,
+        start_idx: NodeIndex,
+    ) -> AlgorithmResult {
         let timer = Timer::new(0.5, true);
         AlgorithmResult {
             start_idx,
@@ -67,7 +40,7 @@ impl AlgorithmResult {
         }
     }
 
-    pub fn get_steps(&self) -> &VecDeque<AlgorithmStep> {
+    pub fn get_steps(&self) -> &VecDeque<Box<dyn AlgorithmStep>> {
         &self.steps
     }
 
@@ -82,18 +55,7 @@ impl AlgorithmResult {
     pub fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
         if self.timer_mut().update(ctx) {
             if let Some(alg_step) = self.steps.pop_front() {
-                match alg_step {
-                    AlgorithmStep::Node(step) => {
-                        if let Some(node) = graph.node_weight_mut(step.idx) {
-                            node.set_state(step.to_state)
-                        }
-                    }
-                    AlgorithmStep::Edge(step) => {
-                        if let Some(edge) = graph.edge_weight_mut(step.idx) {
-                            edge.enable_edge();
-                        }
-                    }
-                }
+                alg_step.step(graph);
             } else {
                 self.timer_mut().stop();
 

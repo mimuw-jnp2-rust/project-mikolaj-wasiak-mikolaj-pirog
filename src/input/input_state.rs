@@ -4,7 +4,7 @@ use tetra::Context;
 
 use crate::graph::node::NodeHighlight;
 use crate::graph::GraphOnCanvas;
-use crate::graph::{node::VisibleNode, Graph};
+use crate::graph::{node::Node, Graph};
 
 #[derive(Default)]
 pub struct StateData {
@@ -23,7 +23,7 @@ impl InputState {
     pub fn on_left_click(&mut self, ctx: &mut Context, graph: &mut Graph, position: Vec2<f32>) {
         match self {
             InputState::Add => {
-                graph.add_node(VisibleNode::new(ctx, position));
+                graph.add_node(Node::new(ctx, position));
             }
             InputState::Remove => {
                 graph

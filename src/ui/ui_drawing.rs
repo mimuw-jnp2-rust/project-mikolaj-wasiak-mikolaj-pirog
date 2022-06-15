@@ -61,12 +61,15 @@ impl Default for UiData {
 
 fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     egui::Window::new("Controls").show(egui_ctx, |ui| {
-        ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
-        ui.selectable_value(
-            &mut game_state.ui_data.state,
-            UiState::Algorithm,
-            "Show algos",
-        );
+        ui.checkbox(&mut true, "directed");
+        ui.horizontal(|ui| {
+            ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
+            ui.selectable_value(
+                &mut game_state.ui_data.state,
+                UiState::Algorithm,
+                "Show algos",
+            );
+        });
         if ui.button("reset state").clicked() {
             game_state.graph.reset_state();
         }
@@ -173,8 +176,8 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
                 // TODO: Should we reset graph each time button is pressed?
                 // What if someone wants to run dfs twice on separate sub-graphs?
                 game_state.graph.reset_state();
-                let algorithm = Dfs::new();
-                let result = algorithm.run_algorithm(&mut game_state.graph, idx);
+                let algorithm = Dfs::from_graph(&game_state.graph);
+                let result = algorithm.run_algorithm(&game_state.graph, idx);
                 game_state.add_algorithm(result);
             }
         }

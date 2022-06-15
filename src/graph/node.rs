@@ -17,27 +17,14 @@ pub enum NodeHighlight {
     Normal,
 }
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum NodeState {
-    Visited,
-    Queued,
-    NotVisited,
-}
-
-pub trait Node {
-    fn get_state(&self) -> &NodeState;
-
-    fn set_state(&mut self, state: NodeState);
-}
-
-pub struct VisibleNode {
+pub struct Node {
     position: Position,
     radius: f32,
 
     border_color: Color,
+    color: Color,
 
     highlight: NodeHighlight,
-    algorithm_state: NodeState,
 
     current_force: Position,
     ignore_force: bool,
@@ -47,12 +34,13 @@ pub struct VisibleNode {
     border: Mesh,
 }
 
-impl VisibleNode {
-    pub fn new(ctx: &mut Context, position: Position) -> VisibleNode {
-        VisibleNode {
+impl Node {
+    pub fn new(ctx: &mut Context, position: Position) -> Node {
+        Node {
             position,
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
+            color: Color::WHITE,
             current_force: Position::zero(),
             ignore_force: false,
             border: Mesh::circle(
@@ -62,7 +50,6 @@ impl VisibleNode {
                 BASE_RADIUS,
             )
             .unwrap(),
-            algorithm_state: NodeState::NotVisited,
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
@@ -86,12 +73,12 @@ impl VisibleNode {
             .position(self.position)
     }
 
-    fn get_color(&self) -> Color {
-        match self.algorithm_state {
-            NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
-            NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
-            NodeState::NotVisited => Color::WHITE,
-        }
+    pub fn get_color(&self) -> Color {
+        self.color
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
     }
 
     pub fn set_highlight(&mut self, highlight: NodeHighlight) {
@@ -145,15 +132,5 @@ impl VisibleNode {
     pub fn set_ignore_force(&mut self, value: bool) {
         self.ignore_force = value;
         self.current_force = Position::zero();
-    }
-}
-
-impl Node for VisibleNode {
-    fn get_state(&self) -> &NodeState {
-        &self.algorithm_state
-    }
-
-    fn set_state(&mut self, state: NodeState) {
-        self.algorithm_state = state;
     }
 }

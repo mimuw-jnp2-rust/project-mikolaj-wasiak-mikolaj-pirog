@@ -5,15 +5,14 @@ use petgraph::{
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
-use tetra::math::Vec2;
 use tetra::Context;
+use tetra::{graphics::Color, math::Vec2};
 
 use edge::Edge;
-use node::VisibleNode;
 
 use self::{
     gravity::{PullForceConfig, PushForceConfig},
-    node::{Node, NodeState},
+    node::Node,
 };
 
 pub mod edge;
@@ -21,7 +20,7 @@ pub mod gravity;
 pub mod node;
 pub mod random;
 
-pub type Graph = petgraph::Graph<VisibleNode, Edge, Directed, u32>;
+pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {
@@ -177,7 +176,7 @@ impl GraphOnCanvas for Graph {
     fn reset_state(&mut self) {
         for node in self.node_weights_mut() {
             node.set_ignore_force(false);
-            node.set_state(NodeState::NotVisited);
+            node.set_color(Color::WHITE);
         }
         for edge in self.edge_weights_mut() {
             edge.reset_state();

@@ -1,7 +1,9 @@
 use rand::seq::IteratorRandom;
 use tetra::Context;
 
-use super::{Graph, GraphOnCanvas, Position, VisibleNode};
+use crate::graph::node::Node;
+
+use super::{Graph, GraphOnCanvas, Position};
 
 // TODO: Animate that
 pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32) -> Graph {
@@ -11,7 +13,7 @@ pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32) -> Graph {
     );
     let mut graph = Graph::new();
     for _ in 0..node_count {
-        let weight = VisibleNode::new(ctx, Position::zero());
+        let weight = Node::new(ctx, Position::zero());
         graph.add_node(weight);
     }
     let mut rng = rand::thread_rng();
