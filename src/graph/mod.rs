@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use egui_tetra::egui::CtxRef;
 use egui_tetra::State;
 use petgraph::{
@@ -7,13 +5,15 @@ use petgraph::{
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
-use tetra::math::Vec2;
 use tetra::Context;
+use tetra::{graphics::Color, math::Vec2};
 
 use edge::Edge;
-use node::Node;
 
-use self::gravity::{PullForceConfig, PushForceConfig};
+use self::{
+    gravity::{PullForceConfig, PushForceConfig},
+    node::Node,
+};
 
 pub mod edge;
 pub mod gravity;
@@ -25,19 +25,9 @@ pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {
     fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>>;
-    fn connect_nodes(
-        &mut self,
-        ctx: &mut Context,
-        from: NodeIndex,
-        to: NodeIndex,
-    ) -> Result<(), Box<dyn Error>>;
+    fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex);
 
-    fn move_node(
-        &mut self,
-        ctx: &mut Context,
-        idx: NodeIndex,
-        position: Position,
-    ) -> Result<(), Box<dyn Error>>;
+    fn move_node(&mut self, ctx: &mut Context, idx: NodeIndex, position: Position);
 
     fn update_edges_position(
         &mut self,
@@ -45,10 +35,12 @@ pub trait GraphOnCanvas {
         idx: NodeIndex,
         position: Position,
         direction: petgraph::EdgeDirection,
-    ) -> Result<(), Box<dyn Error>>;
+    );
 
-    fn push_force(&mut self, ctx: &mut Context, egui_ctx: &CtxRef, push_conf: &PushForceConfig);
-    fn pull_force(&mut self, ctx: &mut Context, egui_ctx: &CtxRef, pull_conf: &PullForceConfig);
+    fn push_force(&mut self, push_conf: &PushForceConfig);
+    fn pull_force(&mut self, pull_conf: &PullForceConfig);
+
+    fn reset_state(&mut self);
 
     fn update(
         &mut self,
@@ -56,14 +48,9 @@ pub trait GraphOnCanvas {
         egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
-    ) -> Result<(), Box<dyn Error>>;
+    );
 
-    fn draw(
-        &mut self,
-        mouse_position: Vec2<f32>,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-    ) -> Result<(), Box<dyn Error>>;
+    fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef);
 }
 
 impl GraphOnCanvas for Graph {
@@ -76,40 +63,26 @@ impl GraphOnCanvas for Graph {
     }
 
     // Wrapper for add_edge function
-    fn connect_nodes(
-        &mut self,
-        ctx: &mut Context,
-        from: NodeIndex,
-        to: NodeIndex,
-    ) -> Result<(), Box<dyn Error>> {
+    fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex) {
         let edge = Edge::new(
             ctx,
             self.node_weight(from)
                 .map_or(Position::zero(), |node| node.position()),
             self.node_weight(to)
                 .map_or(Position::zero(), |node| node.position()),
-        )?;
+        );
 
         self.add_edge(from, to, edge);
         println!("Connecting {} -> {}", from.index(), to.index());
-
-        Ok(())
     }
 
-    fn move_node(
-        &mut self,
-        ctx: &mut Context,
-        idx: NodeIndex,
-        to: Position,
-    ) -> Result<(), Box<dyn Error>> {
+    fn move_node(&mut self, ctx: &mut Context, idx: NodeIndex, to: Position) {
         if let Some(node) = self.node_weight_mut(idx) {
             node.set_position(to);
         }
 
-        self.update_edges_position(ctx, idx, to, Outgoing)?;
-        self.update_edges_position(ctx, idx, to, Incoming)?;
-
-        Ok(())
+        self.update_edges_position(ctx, idx, to, Outgoing);
+        self.update_edges_position(ctx, idx, to, Incoming);
     }
 
     fn update_edges_position(
@@ -118,26 +91,24 @@ impl GraphOnCanvas for Graph {
         idx: NodeIndex,
         position: Position,
         direction: petgraph::EdgeDirection,
-    ) -> Result<(), Box<dyn Error>> {
+    ) {
         let mut neigh_iter = self.neighbors_directed(idx, direction).detach();
 
         while let Some((edge_idx, neigh_idx)) = neigh_iter.next(self) {
-            if let Some((neigh_pos, edge_data)) = self
+            let neigh_pos_opt = self
                 .node_weight(neigh_idx)
-                .map(|neigh_data| neigh_data.position())
-                .zip(self.edge_weight_mut(edge_idx))
-            {
+                .map(|neigh_data| neigh_data.position());
+            let edge_weight_opt = self.edge_weight_mut(edge_idx);
+            if let (Some(neigh_pos), Some(edge_data)) = (neigh_pos_opt, edge_weight_opt) {
                 match direction {
-                    Outgoing => edge_data.update_position(ctx, position, neigh_pos)?,
-                    Incoming => edge_data.update_position(ctx, neigh_pos, position)?,
-                }
+                    Outgoing => edge_data.update_position(ctx, position, neigh_pos),
+                    Incoming => edge_data.update_position(ctx, neigh_pos, position),
+                };
             }
         }
-
-        Ok(())
     }
 
-    fn push_force(&mut self, _ctx: &mut Context, _egui_ctx: &CtxRef, push_conf: &PushForceConfig) {
+    fn push_force(&mut self, push_conf: &PushForceConfig) {
         for idx in self.node_indices() {
             for other_idx in self.node_indices() {
                 if idx == other_idx {
@@ -154,7 +125,7 @@ impl GraphOnCanvas for Graph {
         }
     }
 
-    fn pull_force(&mut self, _ctx: &mut Context, _egui_ctx: &CtxRef, pull_conf: &PullForceConfig) {
+    fn pull_force(&mut self, pull_conf: &PullForceConfig) {
         for idx in self.node_indices() {
             let mut result = Position::zero();
 
@@ -175,39 +146,40 @@ impl GraphOnCanvas for Graph {
     fn update(
         &mut self,
         ctx: &mut Context,
-        egui_ctx: &CtxRef,
+        _egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
-    ) -> Result<(), Box<dyn Error>> {
-        self.push_force(ctx, egui_ctx, push_conf);
-        self.pull_force(ctx, egui_ctx, pull_conf);
+    ) {
+        self.push_force(push_conf);
+        self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
-            self.node_weight_mut(node_idx)
-                .map(|node| {
-                    node.consume_force(ctx);
-                    node.position()
-                })
-                .map(|pos| self.move_node(ctx, node_idx, pos));
+            if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
+                node.consume_force(ctx);
+                node.position()
+            }) {
+                self.move_node(ctx, node_idx, pos)
+            }
         }
-
-        Ok(())
     }
 
-    fn draw(
-        &mut self,
-        mouse_position: Vec2<f32>,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-    ) -> Result<(), Box<dyn Error>> {
+    fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef) {
         for edge in self.edge_weights_mut() {
-            edge.draw(ctx, egui_ctx)?;
+            edge.draw(ctx, egui_ctx).unwrap();
         }
 
         for node in self.node_weights_mut() {
-            node.draw(ctx, egui_ctx, mouse_position)?;
+            node.draw(ctx, egui_ctx, mouse_position);
         }
+    }
 
-        Ok(())
+    fn reset_state(&mut self) {
+        for node in self.node_weights_mut() {
+            node.set_ignore_force(false);
+            node.set_color(Color::WHITE);
+        }
+        for edge in self.edge_weights_mut() {
+            edge.reset_state();
+        }
     }
 }

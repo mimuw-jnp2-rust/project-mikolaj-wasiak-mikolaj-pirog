@@ -30,11 +30,7 @@ pub struct Edge {
 }
 
 impl Edge {
-    fn create_arrow(
-        ctx: &mut Context,
-        from: Position,
-        to: Position,
-    ) -> Result<Mesh, tetra::TetraError> {
+    fn create_arrow(ctx: &mut Context, from: Position, to: Position) -> Mesh {
         let (from, to) = (
             Position::lerp(from, to, (1. - BASE_ARROW_SCALE) / 2.),
             Position::lerp(from, to, (1. + BASE_ARROW_SCALE) / 2.),
@@ -45,35 +41,30 @@ impl Edge {
             (to - from).rotated_z(-PI * 3. / 4.).normalized() * BASE_ARROW_ARMS_SIZE + to;
         let mut builder = GeometryBuilder::new();
 
-        builder.polyline(BASE_STROKE_WIDTH, &[from, to])?;
-        builder.polyline(
-            BASE_STROKE_WIDTH,
-            &[left_arrow_point, to, right_arrow_point],
-        )?;
-        builder.build_mesh(ctx)
+        builder.polyline(BASE_STROKE_WIDTH, &[from, to]).unwrap();
+        builder
+            .polyline(
+                BASE_STROKE_WIDTH,
+                &[left_arrow_point, to, right_arrow_point],
+            )
+            .unwrap();
+        builder.build_mesh(ctx).unwrap()
     }
 
-    pub fn new(ctx: &mut Context, from: Position, to: Position) -> Result<Edge, Box<dyn Error>> {
-        Ok(Edge {
+    pub fn new(ctx: &mut Context, from: Position, to: Position) -> Edge {
+        Edge {
             from,
             to,
             color: Color::BLACK,
-            shape: Edge::create_arrow(ctx, from, to)?,
+            shape: Edge::create_arrow(ctx, from, to),
             enabled: true,
-        })
+        }
     }
 
-    pub fn update_position(
-        &mut self,
-        ctx: &mut Context,
-        from: Position,
-        to: Position,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn update_position(&mut self, ctx: &mut Context, from: Position, to: Position) {
         self.from = from;
         self.to = to;
-        self.shape = Edge::create_arrow(ctx, from, to)?;
-
-        Ok(())
+        self.shape = Edge::create_arrow(ctx, from, to);
     }
 
     pub fn disable_edge(&mut self) {
@@ -82,6 +73,10 @@ impl Edge {
     }
 
     pub fn enable_edge(&mut self) {
+        self.reset_state();
+    }
+
+    pub fn reset_state(&mut self) {
         self.enabled = true;
         self.color.a = 1.0;
     }

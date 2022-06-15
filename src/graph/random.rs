@@ -1,31 +1,30 @@
-use rand::prelude::*;
 use rand::seq::IteratorRandom;
-use std::error::Error;
 use tetra::Context;
 
-use super::{Graph, GraphOnCanvas, Node, Position};
+use crate::graph::node::Node;
 
-// TODO: Button to create random graph
+use super::{Graph, GraphOnCanvas, Position};
 
-pub fn random(
-    node_count: u32,
-    edge_count: u32,
-    ctx: &mut Context,
-) -> Result<Graph, Box<dyn Error>> {
-    let mut g = Graph::new();
-    for _ in [0..node_count] {
-        let weight = Node::new(ctx, Position::zero())?;
-        g.add_node(weight);
+// TODO: Animate that
+pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32) -> Graph {
+    println!(
+        "Generating graph with {} nodes and {} edges",
+        node_count, edge_count
+    );
+    let mut graph = Graph::new();
+    for _ in 0..node_count {
+        let weight = Node::new(ctx, Position::zero());
+        graph.add_node(weight);
     }
     let mut rng = rand::thread_rng();
-    for _ in [0..edge_count] {
-        let a_opt = g.node_indices().choose(&mut rng);
-        let b_opt = g.node_indices().choose(&mut rng);
+    for _ in 0..edge_count {
+        let a_opt = graph.node_indices().choose(&mut rng);
+        let b_opt = graph.node_indices().choose(&mut rng);
         if let (Some(a), Some(b)) = (a_opt, b_opt) {
             if a != b {
-                g.connect_nodes(ctx, a, b)?;
+                graph.connect_nodes(ctx, a, b);
             }
         }
     }
-    Ok(g)
+    graph
 }

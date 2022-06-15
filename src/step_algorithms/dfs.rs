@@ -1,92 +1,151 @@
+use std::collections::HashMap;
 use std::collections::VecDeque;
 
+use dyn_partial_eq::DynPartialEq;
+use petgraph::graph::EdgeIndex;
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
+use tetra::graphics::Color;
 
-use crate::graph::node::NodeState;
-use crate::graph::Graph;
-use crate::step_algorithms::algorithm::{Algorithm, AlgorithmStep, EdgeStep, NodeStep};
-use crate::step_algorithms::timer::Timer;
+use super::StepAlgorithm;
+use super::StepAlgorithmResult;
+use crate::step_algorithms::step_algorithm::Step;
+use crate::step_algorithms::step_algorithm::GenericGraph;
 
-pub struct Dfs {
-    steps: VecDeque<AlgorithmStep>,
-    timer: Timer,
-    start_idx: NodeIndex,
+#[derive(PartialEq, Debug)]
+pub enum NodeState {
+    Visited,
+    Queued,
+    NotVisited,
 }
 
-impl Algorithm for Dfs {
-    fn start_idx(&self) -> NodeIndex {
-        self.start_idx
-    }
+#[derive(DynPartialEq, PartialEq, Debug)]
+pub struct NodeStep {
+    idx: NodeIndex,
+    to_state: NodeState,
+}
 
-    fn timer(&self) -> &Timer {
-        &self.timer
+impl NodeStep {
+    pub fn new(idx: NodeIndex, to_state: NodeState) -> NodeStep {
+        NodeStep { idx, to_state }
     }
+}
 
-    fn timer_mut(&mut self) -> &mut Timer {
-        &mut self.timer
+impl Step for NodeStep {
+    fn apply_step(&self, graph: &mut crate::graph::Graph) {
+        if let Some(node) = graph.node_weight_mut(self.idx) {
+            node.set_color(match self.to_state {
+                NodeState::Visited => Color::GREEN,
+                NodeState::Queued => Color::rgb8(200, 200, 200),
+                NodeState::NotVisited => Color::WHITE,
+            });
+        }
     }
+}
 
-    fn steps(&self) -> &VecDeque<AlgorithmStep> {
-        &self.steps
+#[derive(DynPartialEq, PartialEq, Debug)]
+pub struct EdgeStep {
+    idx: EdgeIndex,
+}
+
+impl EdgeStep {
+    pub fn new(idx: EdgeIndex) -> EdgeStep {
+        EdgeStep { idx }
     }
+}
 
-    fn steps_mut(&mut self) -> &mut VecDeque<AlgorithmStep> {
-        &mut self.steps
+impl Step for EdgeStep {
+    fn apply_step(&self, graph: &mut crate::graph::Graph) {
+        if let Some(edge) = graph.edge_weight_mut(self.idx) {
+            edge.enable_edge();
+        }
     }
+}
 
-    fn run_algorithm(&mut self, graph: &mut Graph) {
-        self.reset_algorithm(graph);
-        self.dfs(graph);
+pub struct Dfs {
+    steps: VecDeque<Box<dyn Step>>,
+    states: HashMap<NodeIndex, NodeState>,
+}
+
+impl<N, E> StepAlgorithm<N, E> for Dfs {
+    fn get_result(
+        mut self,
+        graph: &GenericGraph<N, E>,
+        start_idx: NodeIndex,
+    ) -> StepAlgorithmResult {
+        self.dfs(graph, start_idx);
+        StepAlgorithmResult::from_steps(self.steps, start_idx)
     }
 }
 
 impl Dfs {
-    pub fn new(start_idx: NodeIndex) -> Dfs {
+    pub fn from_graph<N, E>(graph: &GenericGraph<N, E>) -> Dfs {
+        let mut states = HashMap::new();
+        for index in graph.node_indices() {
+            states.insert(index, NodeState::NotVisited);
+        }
         Dfs {
             steps: VecDeque::new(),
-            timer: Timer::new(1., true),
-            start_idx,
+            states,
         }
     }
 
-    fn dfs(&mut self, graph: &mut Graph) {
-        self.dfs_helper(graph, self.start_idx());
+    fn dfs<N, E>(&mut self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) {
+        self.dfs_helper(graph, start_idx);
     }
 
-    fn dfs_helper(&mut self, graph: &mut Graph, node_index: NodeIndex) {
-        self.add_step(AlgorithmStep::Node(NodeStep::new(
-            node_index,
-            NodeState::Queued,
-        )));
+    fn dfs_helper<N, E>(&mut self, graph: &GenericGraph<N, E>, node_index: NodeIndex) {
+        self.steps
+            .push_back(Box::new(NodeStep::new(node_index, NodeState::Queued)));
 
-        if let Some(node) = graph.node_weight_mut(node_index) {
-            node.set_state(NodeState::Queued)
-        }
+        self.states.insert(node_index, NodeState::Queued);
 
         let mut walker = graph
             .neighbors_directed(node_index, Direction::Outgoing)
             .detach();
 
         while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
-            if let Some(other_state) = graph
-                .node_weight(other_node_idx)
-                .map(|node| node.get_state())
-            {
+            if let Some(other_state) = self.states.get(&other_node_idx) {
                 if matches!(other_state, NodeState::NotVisited) {
-                    self.add_step(AlgorithmStep::Edge(EdgeStep::new(edge_idx)));
+                    self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
                     self.dfs_helper(graph, other_node_idx);
                 }
             }
         }
 
-        self.add_step(AlgorithmStep::Node(NodeStep::new(
-            node_index,
-            NodeState::Visited,
-        )));
+        self.steps
+            .push_back(Box::new(NodeStep::new(node_index, NodeState::Visited)));
 
-        if let Some(node) = graph.node_weight_mut(node_index) {
-            node.set_state(NodeState::Visited)
-        }
+        self.states.insert(node_index, NodeState::Visited);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Dfs, GenericGraph};
+    use crate::step_algorithms::{
+        step_algorithm::Step,
+        dfs::{EdgeStep, NodeState, NodeStep},
+        StepAlgorithm,
+    };
+    use std::collections::VecDeque;
+
+    #[test]
+    fn small_test() {
+        let mut graph = GenericGraph::<u32, u32>::new();
+        let a = graph.add_node(1);
+        let b = graph.add_node(2);
+        let edge_idx = graph.add_edge(a, b, 0);
+
+        let res = Dfs::from_graph(&mut graph).get_result(&mut graph, a);
+
+        let mut desired = VecDeque::<Box<dyn Step>>::new();
+        desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
+        desired.push_back(Box::new(EdgeStep::new(edge_idx)));
+        desired.push_back(Box::new(NodeStep::new(b, NodeState::Queued)));
+        desired.push_back(Box::new(NodeStep::new(b, NodeState::Visited)));
+        desired.push_back(Box::new(NodeStep::new(a, NodeState::Visited)));
+
+        assert_eq!(res.get_steps(), &desired);
     }
 }

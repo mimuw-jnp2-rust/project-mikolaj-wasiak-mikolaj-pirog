@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use egui_tetra::egui;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::DrawParams;
@@ -19,12 +17,6 @@ pub enum NodeHighlight {
     Normal,
 }
 
-pub enum NodeState {
-    Visited,
-    Queued,
-    NotVisited,
-}
-
 pub struct Node {
     position: Position,
     radius: f32,
@@ -33,7 +25,6 @@ pub struct Node {
     color: Color,
 
     highlight: NodeHighlight,
-    algorithm_state: NodeState,
 
     current_force: Position,
     ignore_force: bool,
@@ -44,8 +35,8 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(ctx: &mut Context, position: Position) -> Result<Node, Box<dyn Error>> {
-        Ok(Node {
+    pub fn new(ctx: &mut Context, position: Position) -> Node {
+        Node {
             position,
             radius: BASE_RADIUS,
             border_color: Color::BLACK,
@@ -57,11 +48,12 @@ impl Node {
                 ShapeStyle::Stroke(BASE_BORDER_SIZE),
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
-            )?,
-            algorithm_state: NodeState::NotVisited,
-            circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)?,
+            )
+            .unwrap(),
+            circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
+                .unwrap(),
             highlight: NodeHighlight::Normal,
-        })
+        }
     }
 
     // Is point in this shape?
@@ -79,6 +71,14 @@ impl Node {
                 },
             )
             .position(self.position)
+    }
+
+    pub fn get_color(&self) -> Color {
+        self.color
+    }
+
+    pub fn set_color(&mut self, color: Color) {
+        self.color = color;
     }
 
     pub fn set_highlight(&mut self, highlight: NodeHighlight) {
@@ -121,44 +121,12 @@ impl Node {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &egui::CtxRef,
-        mouse_position: Vec2<f32>,
-    ) -> Result<(), Box<dyn Error>> {
+    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) {
         let params = self.get_draw_params(mouse_position);
-        self.circle.draw(ctx, params.clone().color(self.color));
+        self.circle
+            .draw(ctx, params.clone().color(self.get_color()));
         //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
         self.border.draw(ctx, params.color(self.border_color));
-
-        Ok(())
-    }
-
-    pub fn set_color(&mut self, color: Color) {
-        self.color = color;
-    }
-
-    pub fn get_color(&self) -> Color {
-        self.color
-    }
-
-    pub fn get_state(&self) -> &NodeState {
-        &self.algorithm_state
-    }
-
-    pub fn set_state(&mut self, state: NodeState) {
-        self.algorithm_state = state;
-        self.color = match self.algorithm_state {
-            NodeState::Queued => Color::rgb(0.01, 0.1, 0.5),
-            NodeState::Visited => Color::rgb(0.01, 0.9, 0.),
-            NodeState::NotVisited => Color::WHITE,
-        };
-
-        println!(
-            "New color {}, {}, {}",
-            self.color.r, self.color.g, self.color.b
-        );
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
