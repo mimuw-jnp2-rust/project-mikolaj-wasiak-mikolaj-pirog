@@ -173,9 +173,7 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
             .clicked()
         {
             if let Some(idx) = idx_opt {
-                // TODO: Should we reset graph each time button is pressed?
-                // What if someone wants to run dfs twice on separate sub-graphs?
-                game_state.graph.reset_state();
+                //game_state.graph.reset_state();
                 let algorithm = Dfs::from_graph(&game_state.graph);
                 let result = algorithm.run_algorithm(&game_state.graph, idx);
                 game_state.add_algorithm(result);
