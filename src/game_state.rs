@@ -4,7 +4,7 @@ use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::text::Font;
-use tetra::graphics::{self, Camera, Color};
+use tetra::graphics::{self, Camera, Color, FilterMode};
 
 use tetra::input::MouseButton;
 use tetra::Context;
@@ -49,8 +49,11 @@ impl GameState {
             .unwrap(),
             ui_data: UiData::new(),
             algorithm: None,
-            font: Font::vector(ctx, "resources/fonts/JetBrainsMono-Regular.ttf", FONT_SIZE)
-                .unwrap(),
+            font: {
+                let mut font = Font::vector(ctx, "resources/fonts/JetBrainsMono-Regular.ttf", FONT_SIZE).unwrap();
+                font.set_filter_mode(ctx, FilterMode::Nearest);
+                font
+            },
         }
     }
 
