@@ -3,7 +3,9 @@ use std::error::Error;
 use egui_tetra::egui;
 use egui_tetra::egui::CtxRef;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
+use tetra::graphics::text::Font;
 use tetra::graphics::{self, Camera, Color};
+use tetra::input::KeyLabel::F;
 use tetra::input::MouseButton;
 use tetra::Context;
 
@@ -16,6 +18,7 @@ use crate::ui::ui_drawing::UiData;
 
 pub const SCREEN_WIDTH: f32 = 1280.;
 pub const SCREEN_HEIGHT: f32 = 800.;
+pub const FONT_SIZE: f32 = 10.;
 
 pub struct GameState {
     pub graph: Graph,
@@ -26,6 +29,7 @@ pub struct GameState {
     scaler: ScreenScaler,
 
     pub ui_data: UiData,
+    pub font: Font,
 
     algorithm: Option<StepAlgorithmResult>,
 }
@@ -45,6 +49,8 @@ impl GameState {
             .unwrap(),
             ui_data: UiData::new(),
             algorithm: None,
+            font: Font::vector(ctx, "resources/fonts/JetBrainsMono-Regular.ttf", FONT_SIZE)
+                .unwrap(),
         }
     }
 
@@ -81,7 +87,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
         self.graph
-            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx);
+            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx, self.camera.rotation);
 
         graphics::reset_transform_matrix(ctx);
 
@@ -105,8 +111,12 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             button: MouseButton::Left,
         } = &event
         {
-            self.input_state
-                .on_left_click(ctx, &mut self.graph, self.camera.mouse_position(ctx));
+            self.input_state.on_left_click(
+                ctx,
+                &mut self.graph,
+                self.camera.mouse_position(ctx),
+                self.font.clone(),
+            );
         }
 
         self.camera.handle_camera_events(event)

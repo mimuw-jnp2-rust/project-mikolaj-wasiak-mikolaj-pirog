@@ -1,4 +1,5 @@
 use petgraph::graph::NodeIndex;
+use tetra::graphics::text::Font;
 use tetra::math::Vec2;
 use tetra::Context;
 
@@ -20,10 +21,16 @@ pub enum InputState {
 }
 
 impl InputState {
-    pub fn on_left_click(&mut self, ctx: &mut Context, graph: &mut Graph, position: Vec2<f32>) {
+    pub fn on_left_click(
+        &mut self,
+        ctx: &mut Context,
+        graph: &mut Graph,
+        position: Vec2<f32>,
+        font: Font,
+    ) {
         match self {
             InputState::Add => {
-                graph.add_node(Node::new(ctx, position));
+                graph.add_node(Node::new(ctx, position, font.clone()));
             }
             InputState::Remove => {
                 graph

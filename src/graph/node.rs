@@ -1,9 +1,15 @@
 use egui_tetra::egui;
+use egui_tetra::egui::Shape::Vec;
 use tetra::graphics::mesh::ShapeStyle;
+use tetra::graphics::text::{Font, Text};
 use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
+use std::f32;
+use std::f32::consts::PI;
+use std::ops::Deref;
+use egui_tetra::egui::epaint::text::Row;
 
 use super::gravity::PushForceConfig;
 use super::Position;
@@ -32,10 +38,16 @@ pub struct Node {
     // To change colors this has to be separate
     circle: Mesh,
     border: Mesh,
+
+    node_text: String,
+    font: Font,
 }
 
 impl Node {
-    pub fn new(ctx: &mut Context, position: Position) -> Node {
+    // Adding font here is not perfect, but I don't see better solution. Creating font with every frame is expensive, since it has to cache the file again and again.
+    // creating the font as a static is out of the question, since its ctro takes ctx as argument. Hence I believe it should be stored in gamestate and cloned every time
+    // new nodes is created (cloning node is cheap, its just Rc under the hood).
+    pub fn new(ctx: &mut Context, position: Position, font: Font) -> Node {
         Node {
             position,
             radius: BASE_RADIUS,
@@ -53,6 +65,8 @@ impl Node {
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
+            node_text: String::new(),
+            font,
         }
     }
 
@@ -121,12 +135,20 @@ impl Node {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) {
+    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>, rotation: f32) {
         let params = self.get_draw_params(mouse_position);
         self.circle
             .draw(ctx, params.clone().color(self.get_color()));
-        //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
-        self.border.draw(ctx, params.color(self.border_color));
+
+        self.border
+            .draw(ctx, params.clone().color(self.border_color));
+
+        let mut text = Text::new(Vec2::new(self.position.x as i32, self.position.y as i32).to_string(), self.font.clone());
+        text.set_max_width(Some(BASE_RADIUS));
+        let mut text_params = self.get_draw_params(mouse_position).color(Color::BLACK);
+        text_params.position = (self.position - text.get_bounds(ctx).unwrap().bottom_right() / 2.);
+        text_params.rotation = -rotation;
+        text.draw(ctx, text_params);
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
