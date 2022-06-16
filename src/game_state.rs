@@ -51,7 +51,7 @@ impl GameState {
             algorithm: None,
             font: {
                 let mut font = Font::vector(ctx, "resources/fonts/JetBrainsMono-Regular.ttf", FONT_SIZE).unwrap();
-                font.set_filter_mode(ctx, FilterMode::Nearest);
+                font.set_filter_mode(ctx, FilterMode::Linear);
                 font
             },
         }
