@@ -18,7 +18,7 @@ use crate::ui::ui_drawing::UiData;
 
 pub const SCREEN_WIDTH: f32 = 1280.;
 pub const SCREEN_HEIGHT: f32 = 800.;
-pub const FONT_SIZE: f32 = 10.;
+pub const FONT_SIZE_SQUARED: f32 = 100.;
 
 pub struct GameState {
     pub graph: Graph,
@@ -50,7 +50,12 @@ impl GameState {
             ui_data: UiData::new(),
             algorithm: None,
             font: {
-                let mut font = Font::vector(ctx, "resources/fonts/JetBrainsMono-Regular.ttf", FONT_SIZE).unwrap();
+                let mut font = Font::vector(
+                    ctx,
+                    "resources/fonts/JetBrainsMono-Regular.ttf",
+                    FONT_SIZE_SQUARED,
+                )
+                .unwrap();
                 font.set_filter_mode(ctx, FilterMode::Linear);
                 font
             },

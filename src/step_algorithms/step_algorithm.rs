@@ -4,7 +4,7 @@ use dyn_partial_eq::dyn_partial_eq;
 use petgraph::graph::NodeIndex;
 use petgraph::Directed;
 
-use crate::graph::{Graph};
+use crate::graph::Graph;
 
 use tetra::Context;
 

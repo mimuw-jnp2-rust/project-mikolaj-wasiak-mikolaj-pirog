@@ -1,10 +1,8 @@
-
 use egui_tetra::egui;
-
 
 use std::f32;
 
-
+use crate::game_state::FONT_SIZE_SQUARED;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
 use tetra::graphics::DrawParams;
@@ -147,8 +145,7 @@ impl Node {
         self.circle
             .draw(ctx, params.clone().color(self.get_color()));
 
-        self.border
-            .draw(ctx, params.color(self.border_color));
+        self.border.draw(ctx, params.color(self.border_color));
 
         self.draw_text(ctx, rotation, mouse_position);
     }
@@ -175,7 +172,7 @@ impl Node {
         text_params.position = self.position;
         // We do not want the text to rotate.
         text_params.rotation = -rotation;
-
+        text_params.scale /= f32::sqrt(FONT_SIZE_SQUARED);
         text.draw(ctx, text_params);
     }
 }
