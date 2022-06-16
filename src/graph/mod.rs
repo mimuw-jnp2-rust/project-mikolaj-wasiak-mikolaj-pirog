@@ -50,7 +50,13 @@ pub trait GraphOnCanvas {
         pull_conf: &PullForceConfig,
     );
 
-    fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef, rotation: f32);
+    fn draw(
+        &mut self,
+        mouse_position: Vec2<f32>,
+        ctx: &mut Context,
+        egui_ctx: &CtxRef,
+        rotation: f32,
+    );
 }
 
 impl GraphOnCanvas for Graph {
@@ -163,7 +169,13 @@ impl GraphOnCanvas for Graph {
         }
     }
 
-    fn draw(&mut self, mouse_position: Vec2<f32>, ctx: &mut Context, egui_ctx: &CtxRef, rotation: f32) {
+    fn draw(
+        &mut self,
+        mouse_position: Vec2<f32>,
+        ctx: &mut Context,
+        egui_ctx: &CtxRef,
+        rotation: f32,
+    ) {
         for edge in self.edge_weights_mut() {
             edge.draw(ctx, egui_ctx).unwrap();
         }

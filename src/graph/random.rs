@@ -1,5 +1,5 @@
 use rand::seq::IteratorRandom;
-use std::borrow::{Borrow, BorrowMut};
+
 use tetra::graphics::text::Font;
 use tetra::Context;
 

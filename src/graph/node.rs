@@ -1,15 +1,16 @@
+
 use egui_tetra::egui;
-use egui_tetra::egui::Shape::Vec;
+
+
+use std::f32;
+
+
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
 use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
 use tetra::Context;
-use std::f32;
-use std::f32::consts::PI;
-use std::ops::Deref;
-use egui_tetra::egui::epaint::text::Row;
 
 use super::gravity::PushForceConfig;
 use super::Position;
@@ -39,7 +40,7 @@ pub struct Node {
     circle: Mesh,
     border: Mesh,
 
-    node_text: String,
+    _node_text: String,
     font: Font,
 }
 
@@ -65,7 +66,7 @@ impl Node {
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
-            node_text: String::new(),
+            _node_text: String::new(),
             font,
         }
     }
@@ -135,24 +136,46 @@ impl Node {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>, rotation: f32) {
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        _egui_ctx: &egui::CtxRef,
+        mouse_position: Vec2<f32>,
+        rotation: f32,
+    ) {
         let params = self.get_draw_params(mouse_position);
         self.circle
             .draw(ctx, params.clone().color(self.get_color()));
 
         self.border
-            .draw(ctx, params.clone().color(self.border_color));
+            .draw(ctx, params.color(self.border_color));
 
-        let mut text = Text::new(Vec2::new(self.position.x as i32, self.position.y as i32).to_string(), self.font.clone());
-        text.set_max_width(Some(BASE_RADIUS));
-        let mut text_params = self.get_draw_params(mouse_position).color(Color::BLACK);
-        text_params.position = (self.position - text.get_bounds(ctx).unwrap().bottom_right() / 2.);
-        text_params.rotation = -rotation;
-        text.draw(ctx, text_params);
+        self.draw_text(ctx, rotation, mouse_position);
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
         self.ignore_force = value;
         self.current_force = Position::zero();
+    }
+
+    pub fn draw_text(&mut self, ctx: &mut Context, rotation: f32, mouse_position: Vec2<f32>) {
+        // todo: what are we would like to draw??
+        let mut text = Text::new(
+            Vec2::new(self.position.x as i32, self.position.y as i32).to_string(),
+            self.font.clone(),
+        );
+
+        // This turns on text wrapping after BASE_RADIUS
+        text.set_max_width(Some(BASE_RADIUS));
+
+        let mut text_params = self.get_draw_params(mouse_position).color(Color::BLACK);
+
+        // We set the origin to the center of the text, so rotation will behave nicely.
+        text_params.origin = text.get_bounds(ctx).unwrap().bottom_right() / 2.;
+        text_params.position = self.position;
+        // We do not want the text to rotate.
+        text_params.rotation = -rotation;
+
+        text.draw(ctx, text_params);
     }
 }

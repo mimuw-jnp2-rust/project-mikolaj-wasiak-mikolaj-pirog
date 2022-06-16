@@ -137,7 +137,7 @@ mod tests {
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
 
-        let res = Dfs::from_graph(&mut graph).get_result(&mut graph, a);
+        let res = Dfs::from_graph(&graph).get_result(&graph, a);
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));

@@ -30,7 +30,7 @@ impl InputState {
     ) {
         match self {
             InputState::Add => {
-                graph.add_node(Node::new(ctx, position, font.clone()));
+                graph.add_node(Node::new(ctx, position, font));
             }
             InputState::Remove => {
                 graph

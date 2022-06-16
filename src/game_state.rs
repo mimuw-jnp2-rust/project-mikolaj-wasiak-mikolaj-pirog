@@ -5,7 +5,7 @@ use egui_tetra::egui::CtxRef;
 use tetra::graphics::scaling::{ScalingMode, ScreenScaler};
 use tetra::graphics::text::Font;
 use tetra::graphics::{self, Camera, Color};
-use tetra::input::KeyLabel::F;
+
 use tetra::input::MouseButton;
 use tetra::Context;
 
@@ -86,8 +86,12 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
         graphics::set_transform_matrix(ctx, self.camera.as_matrix());
 
-        self.graph
-            .draw(self.camera.mouse_position(ctx), ctx, egui_ctx, self.camera.rotation);
+        self.graph.draw(
+            self.camera.mouse_position(ctx),
+            ctx,
+            egui_ctx,
+            self.camera.rotation,
+        );
 
         graphics::reset_transform_matrix(ctx);
 
