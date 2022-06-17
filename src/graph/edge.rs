@@ -85,7 +85,7 @@ impl Edge {
     fn get_draw_params(&self) -> DrawParams {
         DrawParams::new()
             // What is the purpose of this line? After disabling it, the program behaves the same
-            // .position(Position::zero())
+            .position(Position::zero())
             .color(self.color)
     }
 
@@ -107,59 +107,13 @@ impl Edge {
     }
 
     pub fn is_point_in_shape(&self, point: Vec2<f32>) -> bool {
-        let from;
-        let to;
+        let max_triangle_field =
+            Vec2::triangle_area(self.from, self.to, self.from + BASE_STROKE_WIDTH);
 
-        if self.from.y > self.to.y {
-            from = self.to;
-            to = self.from;
-        } else {
-            from = self.from;
-            to = self.to;
-        }
-        let top_right;
-        let top_left;
-        let bottom_right;
-        let bottom_left;
+        let triangle_area = Vec2::triangle_area(self.from, self.to, point);
 
-        if from.x <= to.x {
-            top_right = Vec2::new(
-                from.x + BASE_STROKE_WIDTH / 2.,
-                from.y - BASE_STROKE_WIDTH / 2.,
-            );
-            top_left = Vec2::new(
-                from.x - BASE_STROKE_WIDTH / 2.,
-                from.y + BASE_STROKE_WIDTH / 2.,
-            );
-            bottom_right = Vec2::new(to.x + BASE_STROKE_WIDTH / 2., to.y - BASE_STROKE_WIDTH / 2.);
-            bottom_left = Vec2::new(to.x - BASE_STROKE_WIDTH / 2., to.y + BASE_STROKE_WIDTH / 2.);
-
-            if point.x >= top_left.x
-                && point.x <= bottom_right.x
-                && point.y >= top_right.y
-                && point.y <= bottom_left.y
-            {
-                return true;
-            }
-        } else {
-            top_right = Vec2::new(
-                from.x + BASE_STROKE_WIDTH / 2.,
-                from.y + BASE_STROKE_WIDTH / 2.,
-            );
-            top_left = Vec2::new(
-                from.x - BASE_STROKE_WIDTH / 2.,
-                from.y - BASE_STROKE_WIDTH / 2.,
-            );
-            bottom_right = Vec2::new(to.x + BASE_STROKE_WIDTH / 2., to.y + BASE_STROKE_WIDTH / 2.);
-            bottom_left = Vec2::new(to.x - BASE_STROKE_WIDTH / 2., to.y - BASE_STROKE_WIDTH / 2.);
-
-            if point.x >= bottom_left.x
-                && point.x <= top_right.x
-                && point.y >= top_left.y
-                && point.x <= bottom_right.y
-            {
-                return true;
-            }
+        if triangle_area <= max_triangle_field {
+            return true;
         }
 
         false

@@ -1,4 +1,4 @@
-use petgraph::graph::{NodeIndex};
+use petgraph::graph::NodeIndex;
 use tetra::math::Vec2;
 use tetra::Context;
 
@@ -30,9 +30,10 @@ impl InputState {
                     .get_node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
 
-                graph
-                    .get_edge_from_point(position)
-                    .map(|idx| graph.remove_edge(idx));
+                graph.get_edge_from_point(position).map(|idx| {
+                    //println!("{}", idx.index());
+                    graph.remove_edge(idx)
+                });
             }
             InputState::Move(data) => match data.selected_node {
                 Some(node_idx) => {
