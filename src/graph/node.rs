@@ -1,6 +1,7 @@
 use egui_tetra::egui;
 
 use std::f32;
+use std::ops::DerefMut;
 
 use crate::game_state::FONT_SIZE_SQUARED;
 use tetra::graphics::mesh::ShapeStyle;
@@ -41,8 +42,6 @@ pub struct Node {
 
     node_text: String,
     font: Font,
-
-    write_mode: bool,
 }
 
 impl Node {
@@ -67,9 +66,8 @@ impl Node {
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
-            node_text: String::from("asbs"),
+            node_text: String::from(position.to_string()),
             font,
-            write_mode: false,
         }
     }
 
@@ -160,6 +158,10 @@ impl Node {
     }
 
     pub fn draw_text(&mut self, ctx: &mut Context, rotation: f32, mouse_position: Vec2<f32>) {
+        if self.node_text.is_empty() {
+            return;
+        }
+
         // todo: what are we would like to draw??
         let mut text = Text::new(
             &self.node_text,
@@ -180,23 +182,26 @@ impl Node {
         text.draw(ctx, text_params);
     }
 
-    pub fn get_input(&mut self, ctx: &mut Context) {
+    pub fn get_input(&mut self, ctx: &mut Context, write_mode: &mut bool) {
         if let Some(new_input) = input::get_text_input(ctx) {
-            self.node_text.push_str(new_input);
+            if self.node_text.len() <= 10 {
+                self.node_text.push_str(new_input);
+            }
         }
+
+        if input::is_key_pressed(ctx, Key::Backspace) {
+            self.node_text.pop();
+        }
+
 
         if input::is_key_pressed(ctx, Key::Enter) {
-            self.toggle_write_mode();
+            *write_mode = !(*write_mode);
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera) {
-        if self.write_mode && self.contains(camera.mouse_position(ctx)){
-            self.get_input(ctx);
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, write_mode: &mut bool) {
+        if *write_mode && self.contains(camera.mouse_position(ctx)) {
+            self.get_input(ctx, write_mode);
         }
-    }
-
-    pub fn toggle_write_mode(&mut self) {
-        self.write_mode = !self.write_mode;
     }
 }

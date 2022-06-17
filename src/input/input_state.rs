@@ -28,6 +28,7 @@ impl InputState {
         graph: &mut Graph,
         position: Vec2<f32>,
         font: Font,
+        write_mode: &mut bool,
     ) {
         match self {
             InputState::Add => {
@@ -93,13 +94,13 @@ impl InputState {
                 match data.selected_node {
                     Some(node_idx) => {
                         if let Some(node) = graph.node_weight_mut(node_idx) {
-                            node.toggle_write_mode();
+                            *write_mode = true;
                         }
                         data.selected_node = None;
                     }
                     None => {
                         data.selected_node = graph.get_node_from_point(position);
-                        self.on_left_click(ctx, graph, position, font);
+                        self.on_left_click(ctx, graph, position, font,write_mode);
                     }
                 }
             }

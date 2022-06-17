@@ -49,7 +49,8 @@ pub trait GraphOnCanvas {
         egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
-        camera: &Camera
+        camera: &Camera,
+        write_mode: &mut bool,
     );
 
     fn draw(
@@ -167,14 +168,15 @@ impl GraphOnCanvas for Graph {
         _egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
-        camera: &Camera
+        camera: &Camera,
+        write_mode: &mut bool,
     ) {
         self.push_force(push_conf);
         self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
             if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
-                node.update(ctx, camera);
+                node.update(ctx, camera, write_mode);
                 node.consume_force(ctx);
                 node.position()
             }) {

@@ -23,6 +23,7 @@ pub const FONT_SIZE_SQUARED: f32 = 100.;
 pub struct GameState {
     pub graph: Graph,
     // This is problematic to make nonpublic.
+    //todo pack the junk into a struct
     pub input_state: InputState,
     camera: Camera,
 
@@ -30,6 +31,7 @@ pub struct GameState {
 
     pub ui_data: UiData,
     pub font: Font,
+    pub write_mode: bool,
 
     algorithm: Option<StepAlgorithmResult>,
 }
@@ -59,6 +61,7 @@ impl GameState {
                 font.set_filter_mode(ctx, FilterMode::Linear);
                 font
             },
+            write_mode: false,
         }
     }
 
@@ -66,6 +69,7 @@ impl GameState {
         algorithm_res.show_algorithm(&mut self.graph);
         self.algorithm = Some(algorithm_res);
     }
+
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
@@ -81,14 +85,19 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             egui_ctx,
             &self.ui_data.push_conf(),
             &self.ui_data.pull_conf(),
-            &self.camera
+            &self.camera,
+            &mut self.write_mode,
         );
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);
         }
 
-        self.camera.update_camera_transformation(ctx)
+        if !self.write_mode {
+            self.camera.update_camera_transformation(ctx)
+        } else {
+            Ok(())
+        }
     }
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
@@ -129,9 +138,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 &mut self.graph,
                 self.camera.mouse_position(ctx),
                 self.font.clone(),
+                &mut self.write_mode,
             );
         }
 
-        self.camera.handle_camera_events(event)
+        if !self.write_mode {
+            self.camera.handle_camera_events(event)
+        } else {
+            Ok(())
+        }
     }
 }
