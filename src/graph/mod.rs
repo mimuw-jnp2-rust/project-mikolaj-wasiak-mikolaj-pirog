@@ -25,6 +25,7 @@ pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {
     fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>>;
+    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex>;
     fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex);
 
     fn move_node(&mut self, ctx: &mut Context, idx: NodeIndex, position: Position);
@@ -59,6 +60,14 @@ impl GraphOnCanvas for Graph {
         self.node_indices().rev().find(|idx| {
             self.node_weight(*idx)
                 .map_or(false, |node| node.contains(point))
+        })
+    }
+
+    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex> {
+        // Reversing to select node that is on top
+        self.edge_indices().rev().find(|idx| {
+            self.edge_weight(*idx)
+                .map_or(false, |edge| edge.is_point_in_shape(point))
         })
     }
 
@@ -143,6 +152,16 @@ impl GraphOnCanvas for Graph {
         }
     }
 
+    fn reset_state(&mut self) {
+        for node in self.node_weights_mut() {
+            node.set_ignore_force(false);
+            node.set_color(Color::WHITE);
+        }
+        for edge in self.edge_weights_mut() {
+            edge.reset_state();
+        }
+    }
+
     fn update(
         &mut self,
         ctx: &mut Context,
@@ -170,16 +189,6 @@ impl GraphOnCanvas for Graph {
 
         for node in self.node_weights_mut() {
             node.draw(ctx, egui_ctx, mouse_position);
-        }
-    }
-
-    fn reset_state(&mut self) {
-        for node in self.node_weights_mut() {
-            node.set_ignore_force(false);
-            node.set_color(Color::WHITE);
-        }
-        for edge in self.edge_weights_mut() {
-            edge.reset_state();
         }
     }
 }

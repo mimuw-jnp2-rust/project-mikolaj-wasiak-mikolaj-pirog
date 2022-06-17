@@ -4,6 +4,7 @@ use std::f32::consts::PI;
 use egui_tetra::State;
 use tetra::graphics::mesh::GeometryBuilder;
 use tetra::graphics::{mesh::Mesh, Color, DrawParams};
+use tetra::math::Vec2;
 use tetra::Context;
 
 use super::Position;
@@ -83,7 +84,8 @@ impl Edge {
 
     fn get_draw_params(&self) -> DrawParams {
         DrawParams::new()
-            .position(Position::zero())
+            // What is the purpose of this line? After disabling it, the program behaves the same
+            // .position(Position::zero())
             .color(self.color)
     }
 
@@ -102,6 +104,65 @@ impl Edge {
                 (distance / config.min_distance() - 1.) * config.force_at_twice_distance();
             direction * force_value
         }
+    }
+
+    pub fn is_point_in_shape(&self, point: Vec2<f32>) -> bool {
+        let from;
+        let to;
+
+        if self.from.y > self.to.y {
+            from = self.to;
+            to = self.from;
+        } else {
+            from = self.from;
+            to = self.to;
+        }
+        let top_right;
+        let top_left;
+        let bottom_right;
+        let bottom_left;
+
+        if from.x <= to.x {
+            top_right = Vec2::new(
+                from.x + BASE_STROKE_WIDTH / 2.,
+                from.y - BASE_STROKE_WIDTH / 2.,
+            );
+            top_left = Vec2::new(
+                from.x - BASE_STROKE_WIDTH / 2.,
+                from.y + BASE_STROKE_WIDTH / 2.,
+            );
+            bottom_right = Vec2::new(to.x + BASE_STROKE_WIDTH / 2., to.y - BASE_STROKE_WIDTH / 2.);
+            bottom_left = Vec2::new(to.x - BASE_STROKE_WIDTH / 2., to.y + BASE_STROKE_WIDTH / 2.);
+
+            if point.x >= top_left.x
+                && point.x <= bottom_right.x
+                && point.y >= top_right.y
+                && point.y <= bottom_left.y
+            {
+                return true;
+            }
+        } else {
+            top_right = Vec2::new(
+                from.x + BASE_STROKE_WIDTH / 2.,
+                from.y + BASE_STROKE_WIDTH / 2.,
+            );
+            top_left = Vec2::new(
+                from.x - BASE_STROKE_WIDTH / 2.,
+                from.y - BASE_STROKE_WIDTH / 2.,
+            );
+            bottom_right = Vec2::new(to.x + BASE_STROKE_WIDTH / 2., to.y + BASE_STROKE_WIDTH / 2.);
+            bottom_left = Vec2::new(to.x - BASE_STROKE_WIDTH / 2., to.y - BASE_STROKE_WIDTH / 2.);
+
+            if point.x >= bottom_left.x
+                && point.x <= top_right.x
+                && point.y >= top_left.y
+                && point.x <= bottom_right.y
+            {
+                return true;
+            }
+        }
+
+        false
     }
 }
 
