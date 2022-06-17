@@ -5,10 +5,11 @@ use std::f32;
 use crate::game_state::FONT_SIZE_SQUARED;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
-use tetra::graphics::DrawParams;
+use tetra::graphics::{Camera, DrawParams};
 use tetra::graphics::{mesh::Mesh, Color};
 use tetra::math::Vec2;
-use tetra::Context;
+use tetra::{Context, input};
+use tetra::input::Key;
 
 use super::gravity::PushForceConfig;
 use super::Position;
@@ -38,8 +39,10 @@ pub struct Node {
     circle: Mesh,
     border: Mesh,
 
-    _node_text: String,
+    node_text: String,
     font: Font,
+
+    write_mode: bool,
 }
 
 impl Node {
@@ -60,12 +63,13 @@ impl Node {
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
             )
-            .unwrap(),
+                .unwrap(),
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
-            _node_text: String::new(),
+            node_text: String::from("asbs"),
             font,
+            write_mode: false,
         }
     }
 
@@ -158,7 +162,7 @@ impl Node {
     pub fn draw_text(&mut self, ctx: &mut Context, rotation: f32, mouse_position: Vec2<f32>) {
         // todo: what are we would like to draw??
         let mut text = Text::new(
-            Vec2::new(self.position.x as i32, self.position.y as i32).to_string(),
+            &self.node_text,
             self.font.clone(),
         );
 
@@ -174,5 +178,25 @@ impl Node {
         text_params.rotation = -rotation;
         text_params.scale /= f32::sqrt(FONT_SIZE_SQUARED);
         text.draw(ctx, text_params);
+    }
+
+    pub fn get_input(&mut self, ctx: &mut Context) {
+        if let Some(new_input) = input::get_text_input(ctx) {
+            self.node_text.push_str(new_input);
+        }
+
+        if input::is_key_pressed(ctx, Key::Enter) {
+            self.toggle_write_mode();
+        }
+    }
+
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera) {
+        if self.write_mode && self.contains(camera.mouse_position(ctx)){
+            self.get_input(ctx);
+        }
+    }
+
+    pub fn toggle_write_mode(&mut self) {
+        self.write_mode = !self.write_mode;
     }
 }

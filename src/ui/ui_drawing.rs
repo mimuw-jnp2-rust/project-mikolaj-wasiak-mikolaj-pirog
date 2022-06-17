@@ -113,6 +113,11 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
                 InputState::Move(StateData::default()),
                 "Move",
             );
+            ui.selectable_value(
+                &mut game_state.input_state,
+                InputState::Write(StateData::default()),
+                "Write",
+            );
         });
 
         // FIXME: reference to ephemeral variables - can't edit force/distance

@@ -7,6 +7,7 @@ use petgraph::{
 };
 use tetra::Context;
 use tetra::{graphics::Color, math::Vec2};
+use tetra::graphics::Camera;
 
 use edge::Edge;
 
@@ -48,6 +49,7 @@ pub trait GraphOnCanvas {
         egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
+        camera: &Camera
     );
 
     fn draw(
@@ -149,24 +151,38 @@ impl GraphOnCanvas for Graph {
         }
     }
 
+    fn reset_state(&mut self) {
+        for node in self.node_weights_mut() {
+            node.set_ignore_force(false);
+            node.set_color(Color::WHITE);
+        }
+        for edge in self.edge_weights_mut() {
+            edge.reset_state();
+        }
+    }
+
     fn update(
         &mut self,
         ctx: &mut Context,
         _egui_ctx: &CtxRef,
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
+        camera: &Camera
     ) {
         self.push_force(push_conf);
         self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
             if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
+                node.update(ctx, camera);
                 node.consume_force(ctx);
                 node.position()
             }) {
                 self.move_node(ctx, node_idx, pos)
             }
         }
+
+
     }
 
     fn draw(
@@ -182,16 +198,6 @@ impl GraphOnCanvas for Graph {
 
         for node in self.node_weights_mut() {
             node.draw(ctx, egui_ctx, mouse_position, rotation);
-        }
-    }
-
-    fn reset_state(&mut self) {
-        for node in self.node_weights_mut() {
-            node.set_ignore_force(false);
-            node.set_color(Color::WHITE);
-        }
-        for edge in self.edge_weights_mut() {
-            edge.reset_state();
         }
     }
 }

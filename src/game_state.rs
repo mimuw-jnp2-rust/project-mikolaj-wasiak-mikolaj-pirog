@@ -81,6 +81,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             egui_ctx,
             &self.ui_data.push_conf(),
             &self.ui_data.pull_conf(),
+            &self.camera
         );
 
         if let Some(alg) = &mut self.algorithm {

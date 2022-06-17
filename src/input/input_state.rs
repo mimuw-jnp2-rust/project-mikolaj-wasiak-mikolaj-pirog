@@ -18,6 +18,7 @@ pub enum InputState {
     Move(StateData),
     Connect(StateData),
     Select(StateData),
+    Write(StateData),
 }
 
 impl InputState {
@@ -87,6 +88,21 @@ impl InputState {
                     }
                 }
             }
+            InputState::Write(data) => {
+                println!("dupa");
+                match data.selected_node {
+                    Some(node_idx) => {
+                        if let Some(node) = graph.node_weight_mut(node_idx) {
+                            node.toggle_write_mode();
+                        }
+                        data.selected_node = None;
+                    }
+                    None => {
+                        data.selected_node = graph.get_node_from_point(position);
+                        self.on_left_click(ctx, graph, position, font);
+                    }
+                }
+            }
         }
     }
 
@@ -109,6 +125,7 @@ impl PartialEq for InputState {
                 | (InputState::Move(_), InputState::Move(_))
                 | (InputState::Connect(_), InputState::Connect(_))
                 | (InputState::Select(_), InputState::Select(_))
+                | (InputState::Write(_), InputState::Write(_))
         )
     }
 }
