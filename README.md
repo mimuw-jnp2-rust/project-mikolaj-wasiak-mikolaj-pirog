@@ -61,8 +61,8 @@ egui, a gui library, and tetra, a library for game development.
 dyn_partial_eq because of [this](https://dev.to/magnusstrale/rust-trait-objects-in-a-vector-non-trivial-4co5)
 
 We must say handling the libraries went surprisingly smooth. Petgraph is widely used and pretty mature, so we expected
-no problems, and it delivered. On the other hand, egui_tetra was looking suspicious - it's managed literally by
-Literally One Guy<sup>tm</sup>, so we feared buggy behaviour - especially after Hello World refused to even compile on
+no problems, and it delivered. On the other hand, egui_tetra was looking suspicious - it's managed by
+Literally One Guy<sup>tm</sup>, so we feared buggy behaviour - especially after Hello World! refused to even compile on
 the newest version, and when it did on downgraded one, it produced extremely buggy results. Fortunately, everything went
 smooth, and no problems were encountered during the development itself.
 
