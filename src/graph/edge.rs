@@ -107,12 +107,21 @@ impl Edge {
     }
 
     pub fn is_point_in_shape(&self, point: Vec2<f32>) -> bool {
-        let max_triangle_field =
-            Vec2::triangle_area(self.from, self.to, self.from + BASE_STROKE_WIDTH);
+        // We have to make sure that the point is between the lines,
+        // otherwise it would be possible to remove edge by clicking anywhere along the line (from, to)
+        // since triangle area check would yield zero.
+        if !((point.ge(&self.from) && point.le(&self.to))
+            || (point.ge(&self.to) && point.le(&self.from)))
+        {
+            return false;
+        }
+
+        let max_triangle_area =
+            Vec2::triangle_area(self.from, self.to, self.from + 1.5 * BASE_STROKE_WIDTH);
 
         let triangle_area = Vec2::triangle_area(self.from, self.to, point);
 
-        if triangle_area <= max_triangle_field {
+        if triangle_area <= max_triangle_area {
             return true;
         }
 
