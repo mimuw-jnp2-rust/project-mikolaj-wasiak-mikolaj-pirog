@@ -1,4 +1,6 @@
 use rand::seq::IteratorRandom;
+
+use tetra::graphics::text::Font;
 use tetra::Context;
 
 use crate::graph::node::Node;
@@ -6,14 +8,14 @@ use crate::graph::node::Node;
 use super::{Graph, GraphOnCanvas, Position};
 
 // TODO: Animate that
-pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32) -> Graph {
+pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32, font: Font) -> Graph {
     println!(
         "Generating graph with {} nodes and {} edges",
         node_count, edge_count
     );
     let mut graph = Graph::new();
     for _ in 0..node_count {
-        let weight = Node::new(ctx, Position::zero());
+        let weight = Node::new(ctx, Position::zero(), font.clone());
         graph.add_node(weight);
     }
     let mut rng = rand::thread_rng();

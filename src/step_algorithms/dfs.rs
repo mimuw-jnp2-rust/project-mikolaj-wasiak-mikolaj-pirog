@@ -9,8 +9,8 @@ use tetra::graphics::Color;
 
 use super::StepAlgorithm;
 use super::StepAlgorithmResult;
-use crate::step_algorithms::step_algorithm::Step;
 use crate::step_algorithms::step_algorithm::GenericGraph;
+use crate::step_algorithms::step_algorithm::Step;
 
 #[derive(PartialEq, Debug)]
 pub enum NodeState {
@@ -124,8 +124,8 @@ impl Dfs {
 mod tests {
     use super::{Dfs, GenericGraph};
     use crate::step_algorithms::{
-        step_algorithm::Step,
         dfs::{EdgeStep, NodeState, NodeStep},
+        step_algorithm::Step,
         StepAlgorithm,
     };
     use std::collections::VecDeque;
@@ -137,7 +137,7 @@ mod tests {
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
 
-        let res = Dfs::from_graph(&mut graph).get_result(&mut graph, a);
+        let res = Dfs::from_graph(&graph).get_result(&graph, a);
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));

@@ -7,8 +7,8 @@ use tetra::Context;
 use crate::graph::Position;
 
 const CAMERA_ZOOM_SPEED: f32 = 0.05;
-const Y_AXIS_MOVE_SPEED: f32 = 10.;
-const X_AXIS_MOVE_SPEED: f32 = 10.;
+pub const Y_AXIS_MOVE_SPEED: f32 = 10.;
+pub const X_AXIS_MOVE_SPEED: f32 = 10.;
 const ROTATION_SPEED: f32 = 0.05;
 
 pub trait CameraState {

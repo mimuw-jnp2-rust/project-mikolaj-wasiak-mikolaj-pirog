@@ -4,7 +4,7 @@ use dyn_partial_eq::dyn_partial_eq;
 use petgraph::graph::NodeIndex;
 use petgraph::Directed;
 
-use crate::graph::{Graph, GraphOnCanvas};
+use crate::graph::Graph;
 
 use tetra::Context;
 
@@ -28,10 +28,7 @@ pub struct StepAlgorithmResult {
 }
 
 impl StepAlgorithmResult {
-    pub fn from_steps(
-        steps: VecDeque<Box<dyn Step>>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult {
+    pub fn from_steps(steps: VecDeque<Box<dyn Step>>, start_idx: NodeIndex) -> StepAlgorithmResult {
         let timer = Timer::new(0.5, true);
         StepAlgorithmResult {
             start_idx,
@@ -64,15 +61,13 @@ impl StepAlgorithmResult {
         }
     }
 
-    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut Graph, on : bool) {
+    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut Graph, on: bool) {
         if let Some(node) = graph.node_weight_mut(self.start_idx) {
             node.set_ignore_force(on)
         }
     }
 
     pub fn show_algorithm(&mut self, graph: &mut Graph) {
-        //graph.reset_state();
-
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
             edge.disable_edge();

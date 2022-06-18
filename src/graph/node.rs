@@ -1,9 +1,15 @@
 use egui_tetra::egui;
+
+use std::f32;
+
+use crate::game_state::{AppMode, FONT_SIZE};
 use tetra::graphics::mesh::ShapeStyle;
-use tetra::graphics::DrawParams;
+use tetra::graphics::text::{Font, Text};
 use tetra::graphics::{mesh::Mesh, Color};
+use tetra::graphics::{Camera, DrawParams};
+use tetra::input::Key;
 use tetra::math::Vec2;
-use tetra::Context;
+use tetra::{input, Context};
 
 use super::gravity::PushForceConfig;
 use super::Position;
@@ -32,10 +38,16 @@ pub struct Node {
     // To change colors this has to be separate
     circle: Mesh,
     border: Mesh,
+
+    node_text: String,
+    font: Font,
 }
 
 impl Node {
-    pub fn new(ctx: &mut Context, position: Position) -> Node {
+    // Adding font here is not perfect, but I don't see better solution. Creating font with every frame is expensive, since it has to cache the file again and again.
+    // creating the font as a static is out of the question, since its ctro takes ctx as argument. Hence I believe it should be stored in gamestate and cloned every time
+    // new nodes is created (cloning node is cheap, its just Rc under the hood).
+    pub fn new(ctx: &mut Context, position: Position, font: Font) -> Node {
         Node {
             position,
             radius: BASE_RADIUS,
@@ -53,6 +65,8 @@ impl Node {
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
+            node_text: position.to_string(),
+            font,
         }
     }
 
@@ -121,16 +135,69 @@ impl Node {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef, mouse_position: Vec2<f32>) {
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        _egui_ctx: &egui::CtxRef,
+        mouse_position: Vec2<f32>,
+        rotation: f32,
+    ) {
         let params = self.get_draw_params(mouse_position);
         self.circle
             .draw(ctx, params.clone().color(self.get_color()));
-        //let params = self.get_draw_params(mouse_position); //todo think if cloning is better than double declaration of the same thing.
+
         self.border.draw(ctx, params.color(self.border_color));
+
+        self.draw_text(ctx, rotation, mouse_position);
     }
 
     pub fn set_ignore_force(&mut self, value: bool) {
         self.ignore_force = value;
         self.current_force = Position::zero();
+    }
+
+    pub fn draw_text(&mut self, ctx: &mut Context, rotation: f32, mouse_position: Vec2<f32>) {
+        if self.node_text.is_empty() {
+            return;
+        }
+
+        let mut text = Text::new(&self.node_text, self.font.clone());
+
+        // This turns on text wrapping after BASE_RADIUS
+        text.set_max_width(Some(BASE_RADIUS));
+
+        let mut text_params = self.get_draw_params(mouse_position).color(Color::BLACK);
+
+        // We set the origin to the center of the text, so rotation will behave nicely.
+        text_params.origin = text.get_bounds(ctx).unwrap().bottom_right() / 2.;
+        text_params.position = self.position;
+        // We do not want the text to rotate.
+        text_params.rotation = -rotation;
+        text_params.scale /= FONT_SIZE;
+        text.draw(ctx, text_params);
+    }
+
+    pub fn get_input(&mut self, ctx: &mut Context, mode: &mut AppMode) {
+        if let Some(new_input) = input::get_text_input(ctx) {
+            if self.node_text.len() <= 10 {
+                self.node_text.push_str(new_input);
+            }
+        }
+
+        if input::is_key_pressed(ctx, Key::Backspace) {
+            self.node_text.pop();
+        }
+
+        if input::is_key_pressed(ctx, Key::Enter) {
+            *mode = AppMode::Normal;
+        }
+    }
+
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, mode: &mut AppMode) {
+        if let AppMode::Write = mode {
+            if self.contains(camera.mouse_position(ctx)) {
+                self.get_input(ctx, mode);
+            }
+        }
     }
 }
