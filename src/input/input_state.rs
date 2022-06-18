@@ -18,7 +18,6 @@ pub enum InputState {
     Move(StateData),
     Connect(StateData),
     Select(StateData),
-    Write(StateData),
 }
 
 impl InputState {
@@ -28,7 +27,6 @@ impl InputState {
         graph: &mut Graph,
         position: Vec2<f32>,
         font: Font,
-        write_mode: &mut bool,
     ) {
         match self {
             InputState::Add => {
@@ -89,21 +87,6 @@ impl InputState {
                     }
                 }
             }
-            InputState::Write(data) => {
-                println!("dupa");
-                match data.selected_node {
-                    Some(node_idx) => {
-                        if let Some(node) = graph.node_weight_mut(node_idx) {
-                            *write_mode = true;
-                        }
-                        data.selected_node = None;
-                    }
-                    None => {
-                        data.selected_node = graph.get_node_from_point(position);
-                        self.on_left_click(ctx, graph, position, font,write_mode);
-                    }
-                }
-            }
         }
     }
 
@@ -126,7 +109,6 @@ impl PartialEq for InputState {
                 | (InputState::Move(_), InputState::Move(_))
                 | (InputState::Connect(_), InputState::Connect(_))
                 | (InputState::Select(_), InputState::Select(_))
-                | (InputState::Write(_), InputState::Write(_))
         )
     }
 }

@@ -1,16 +1,15 @@
 use egui_tetra::egui;
 
 use std::f32;
-use std::ops::DerefMut;
 
-use crate::game_state::FONT_SIZE_SQUARED;
+use crate::game_state::{AppMode, FONT_SIZE};
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
-use tetra::graphics::{Camera, DrawParams};
 use tetra::graphics::{mesh::Mesh, Color};
-use tetra::math::Vec2;
-use tetra::{Context, input};
+use tetra::graphics::{Camera, DrawParams};
 use tetra::input::Key;
+use tetra::math::Vec2;
+use tetra::{input, Context};
 
 use super::gravity::PushForceConfig;
 use super::Position;
@@ -62,11 +61,11 @@ impl Node {
                 Vec2 { x: 0.0, y: 0.0 },
                 BASE_RADIUS,
             )
-                .unwrap(),
+            .unwrap(),
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
-            node_text: String::from(position.to_string()),
+            node_text: position.to_string(),
             font,
         }
     }
@@ -162,11 +161,7 @@ impl Node {
             return;
         }
 
-        // todo: what are we would like to draw??
-        let mut text = Text::new(
-            &self.node_text,
-            self.font.clone(),
-        );
+        let mut text = Text::new(&self.node_text, self.font.clone());
 
         // This turns on text wrapping after BASE_RADIUS
         text.set_max_width(Some(BASE_RADIUS));
@@ -178,11 +173,11 @@ impl Node {
         text_params.position = self.position;
         // We do not want the text to rotate.
         text_params.rotation = -rotation;
-        text_params.scale /= f32::sqrt(FONT_SIZE_SQUARED);
+        text_params.scale /= FONT_SIZE;
         text.draw(ctx, text_params);
     }
 
-    pub fn get_input(&mut self, ctx: &mut Context, write_mode: &mut bool) {
+    pub fn get_input(&mut self, ctx: &mut Context, mode: &mut AppMode) {
         if let Some(new_input) = input::get_text_input(ctx) {
             if self.node_text.len() <= 10 {
                 self.node_text.push_str(new_input);
@@ -193,15 +188,16 @@ impl Node {
             self.node_text.pop();
         }
 
-
         if input::is_key_pressed(ctx, Key::Enter) {
-            *write_mode = !(*write_mode);
+            *mode = AppMode::Normal;
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, write_mode: &mut bool) {
-        if *write_mode && self.contains(camera.mouse_position(ctx)) {
-            self.get_input(ctx, write_mode);
+    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, mode: &mut AppMode) {
+        if let AppMode::Write = mode {
+            if self.contains(camera.mouse_position(ctx)) {
+                self.get_input(ctx, mode);
+            }
         }
     }
 }

@@ -5,10 +5,11 @@ use petgraph::{
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
+use tetra::graphics::Camera;
 use tetra::Context;
 use tetra::{graphics::Color, math::Vec2};
-use tetra::graphics::Camera;
 
+use crate::game_state::AppMode;
 use edge::Edge;
 
 use self::{
@@ -50,7 +51,7 @@ pub trait GraphOnCanvas {
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
         camera: &Camera,
-        write_mode: &mut bool,
+        mode: &mut AppMode,
     );
 
     fn draw(
@@ -169,22 +170,20 @@ impl GraphOnCanvas for Graph {
         push_conf: &PushForceConfig,
         pull_conf: &PullForceConfig,
         camera: &Camera,
-        write_mode: &mut bool,
+        mode: &mut AppMode,
     ) {
         self.push_force(push_conf);
         self.pull_force(pull_conf);
 
         for node_idx in self.node_indices() {
             if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
-                node.update(ctx, camera, write_mode);
+                node.update(ctx, camera, mode);
                 node.consume_force(ctx);
                 node.position()
             }) {
                 self.move_node(ctx, node_idx, pos)
             }
         }
-
-
     }
 
     fn draw(

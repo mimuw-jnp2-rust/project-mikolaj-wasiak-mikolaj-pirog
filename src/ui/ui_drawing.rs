@@ -94,7 +94,7 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
                 ctx,
                 game_state.ui_data.node_count,
                 game_state.ui_data.edge_count,
-                game_state.font.clone(),
+                game_state.font(),
             );
         }
         ui.heading("Edit Mode");
@@ -112,11 +112,6 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
                 &mut game_state.input_state,
                 InputState::Move(StateData::default()),
                 "Move",
-            );
-            ui.selectable_value(
-                &mut game_state.input_state,
-                InputState::Write(StateData::default()),
-                "Write",
             );
         });
 

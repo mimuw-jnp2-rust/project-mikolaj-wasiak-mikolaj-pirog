@@ -18,7 +18,18 @@ use crate::ui::ui_drawing::UiData;
 
 pub const SCREEN_WIDTH: f32 = 1280.;
 pub const SCREEN_HEIGHT: f32 = 800.;
-pub const FONT_SIZE_SQUARED: f32 = 100.;
+
+// This is necessary to render fonts correctly: when font is rendered "normally", ie at desired
+// size and then we zoom in, the font becomes pixelated. To avoid this, font is
+// rendered at much bigger size than needed, and then scaled down to desired size. This operations preserve font
+// quality and result in font being very clear even at big blow up.
+pub const FONT_SIZE: f32 = 10.;
+pub const FONT_SIZE_SQUARED: f32 = FONT_SIZE * FONT_SIZE;
+
+pub enum AppMode {
+    Write,
+    Normal,
+}
 
 pub struct GameState {
     pub graph: Graph,
@@ -30,8 +41,8 @@ pub struct GameState {
     scaler: ScreenScaler,
 
     pub ui_data: UiData,
-    pub font: Font,
-    pub write_mode: bool,
+    font: Font,
+    mode: AppMode,
 
     algorithm: Option<StepAlgorithmResult>,
 }
@@ -61,7 +72,7 @@ impl GameState {
                 font.set_filter_mode(ctx, FilterMode::Linear);
                 font
             },
-            write_mode: false,
+            mode: AppMode::Normal,
         }
     }
 
@@ -70,6 +81,9 @@ impl GameState {
         self.algorithm = Some(algorithm_res);
     }
 
+    pub fn font(&self) -> Font {
+        self.font.clone()
+    }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
@@ -86,14 +100,14 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             &self.ui_data.push_conf(),
             &self.ui_data.pull_conf(),
             &self.camera,
-            &mut self.write_mode,
+            &mut self.mode,
         );
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);
         }
 
-        if !self.write_mode {
+        if let AppMode::Normal = self.mode {
             self.camera.update_camera_transformation(ctx)
         } else {
             Ok(())
@@ -138,11 +152,31 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
                 &mut self.graph,
                 self.camera.mouse_position(ctx),
                 self.font.clone(),
-                &mut self.write_mode,
             );
         }
 
-        if !self.write_mode {
+        if let tetra::Event::MouseButtonPressed {
+            button: MouseButton::Right,
+        } = &event
+        {
+            if self
+                .graph
+                .get_node_from_point(self.camera.mouse_position(ctx))
+                .is_some()
+            {
+                self.mode = AppMode::Write;
+            }
+        }
+
+        if self
+            .graph
+            .get_node_from_point(self.camera.mouse_position(ctx))
+            .is_none()
+        {
+            self.mode = AppMode::Normal;
+        }
+
+        if let AppMode::Normal = self.mode {
             self.camera.handle_camera_events(event)
         } else {
             Ok(())
