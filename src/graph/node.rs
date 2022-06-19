@@ -77,7 +77,7 @@ impl Node {
         Vec2::distance(point, self.position) <= self.radius
     }
 
-    fn get_draw_params(&self, position: Position) -> DrawParams {
+    fn draw_params(&self, position: Position) -> DrawParams {
         DrawParams::new()
             .scale(
                 if matches!(self.highlight, NodeHighlight::Highlighted) || self.contains(position) {
@@ -89,7 +89,7 @@ impl Node {
             .position(self.position)
     }
 
-    pub fn get_color(&self) -> Color {
+    pub fn color(&self) -> Color {
         self.color
     }
 
@@ -144,9 +144,8 @@ impl Node {
         mouse_position: Vec2<f32>,
         rotation: f32,
     ) {
-        let params = self.get_draw_params(mouse_position);
-        self.circle
-            .draw(ctx, params.clone().color(self.get_color()));
+        let params = self.draw_params(mouse_position);
+        self.circle.draw(ctx, params.clone().color(self.color()));
 
         self.border.draw(ctx, params.color(self.border_color));
 
@@ -168,7 +167,7 @@ impl Node {
         // This turns on text wrapping after BASE_RADIUS
         text.set_max_width(Some(BASE_RADIUS));
 
-        let mut text_params = self.get_draw_params(mouse_position).color(Color::BLACK);
+        let mut text_params = self.draw_params(mouse_position).color(Color::BLACK);
 
         // We set the origin to the center of the text, so rotation will behave nicely.
         text_params.origin = text.get_bounds(ctx).unwrap().bottom_right() / 2.;
@@ -179,7 +178,7 @@ impl Node {
         text.draw(ctx, text_params);
     }
 
-    pub fn get_input(&mut self, ctx: &mut Context, mode: &mut AppMode) {
+    pub fn input(&mut self, ctx: &mut Context, mode: &mut AppMode) {
         if let Some(new_input) = input::get_text_input(ctx) {
             if self.node_text.len() <= 10 {
                 self.node_text.push_str(new_input);
@@ -198,7 +197,7 @@ impl Node {
     pub fn update(&mut self, ctx: &mut Context, camera: &Camera, mode: &mut AppMode) {
         if let AppMode::Write = mode {
             if self.contains(camera.mouse_position(ctx)) {
-                self.get_input(ctx, mode);
+                self.input(ctx, mode);
             }
         }
     }

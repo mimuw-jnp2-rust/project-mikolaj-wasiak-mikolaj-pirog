@@ -34,10 +34,10 @@ impl InputState {
             }
             InputState::Remove => {
                 graph
-                    .get_node_from_point(position)
+                    .node_from_point(position)
                     .map(|idx| graph.remove_node(idx));
 
-                graph.get_edge_from_point(position).map(|idx| {
+                graph.edge_from_point(position).map(|idx| {
                     //println!("{}", idx.index());
                     graph.remove_edge(idx)
                 });
@@ -50,7 +50,7 @@ impl InputState {
                     }
                 }
                 None => {
-                    data.selected_node = graph.get_node_from_point(position);
+                    data.selected_node = graph.node_from_point(position);
                     if let Some(node_idx) = data.selected_node {
                         if let Some(node) = graph.node_weight_mut(node_idx) {
                             node.set_ignore_force(true)
@@ -60,7 +60,7 @@ impl InputState {
             },
             InputState::Connect(data) => match data.selected_node {
                 Some(from) => {
-                    if let Some(to) = graph.get_node_from_point(position) {
+                    if let Some(to) = graph.node_from_point(position) {
                         graph.connect_nodes(ctx, from, to)
                     }
                     if let Some(node) = graph.node_weight_mut(from) {
@@ -70,7 +70,7 @@ impl InputState {
                     data.selected_node = None;
                 }
                 None => {
-                    data.selected_node = graph.get_node_from_point(position);
+                    data.selected_node = graph.node_from_point(position);
                     if let Some(node) = data
                         .selected_node
                         .and_then(|idx| graph.node_weight_mut(idx))
@@ -85,7 +85,7 @@ impl InputState {
                         node.set_highlight(NodeHighlight::Normal)
                     }
                 }
-                data.selected_node = graph.get_node_from_point(position);
+                data.selected_node = graph.node_from_point(position);
                 if let Some(idx) = data.selected_node {
                     if let Some(node) = graph.node_weight_mut(idx) {
                         node.set_highlight(NodeHighlight::Highlighted)

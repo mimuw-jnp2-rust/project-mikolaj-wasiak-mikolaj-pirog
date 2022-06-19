@@ -69,7 +69,7 @@ pub struct Dfs {
 }
 
 impl StepAlgorithm for Dfs {
-    fn get_result<N, E, D: EdgeType>(
+    fn result<N, E, D: EdgeType>(
         mut self,
         graph: &Graph<N, E, D>,
         start_idx: NodeIndex,
@@ -138,7 +138,7 @@ mod tests {
         let b = graph.add_node(N::default());
         let edge_idx = graph.add_edge(a, b, E::default());
 
-        let res = Dfs::from_graph(&graph).get_result(&graph, a);
+        let res = Dfs::from_graph(&graph).result(&graph, a);
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
@@ -147,7 +147,7 @@ mod tests {
         desired.push_back(Box::new(NodeStep::new(b, NodeState::Visited)));
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Visited)));
 
-        assert_eq!(res.get_steps(), &desired);
+        assert_eq!(res.steps(), &desired);
     }
 
     #[test]

@@ -85,7 +85,7 @@ impl Edge {
         self.color.a = 1.0;
     }
 
-    fn get_draw_params(&self) -> DrawParams {
+    fn draw_params(&self) -> DrawParams {
         DrawParams::new()
             // What is the purpose of this line? After disabling it, the program behaves the same
             .position(Position::zero())
@@ -137,9 +137,9 @@ impl Edge {
 
     pub fn draw(&mut self, ctx: &mut Context, directed: bool) {
         if directed {
-            self.arrow.draw(ctx, self.get_draw_params());
+            self.arrow.draw(ctx, self.draw_params());
         } else {
-            self.line.draw(ctx, self.get_draw_params());
+            self.line.draw(ctx, self.draw_params());
         }
     }
 }
