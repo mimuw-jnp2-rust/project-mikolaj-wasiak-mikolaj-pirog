@@ -1,7 +1,7 @@
 mod bfs;
 mod dfs;
-pub mod step_algorithm;
-pub mod timer;
+mod step_algorithm;
+mod timer;
 
 pub use bfs::Bfs;
 pub use dfs::Dfs;
