@@ -1,6 +1,6 @@
 use egui_tetra::egui::{self, Button, Ui};
 use petgraph::graph::NodeIndex;
-use petgraph::{Directed, EdgeType, Undirected};
+use petgraph::{Directed, Undirected};
 
 use crate::graph::edge::{
     Edge, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
@@ -58,6 +58,10 @@ impl UiData {
 
     pub fn pull_conf(&self) -> PullForceConfig {
         self.pull_conf
+    }
+
+    pub fn is_directed(&self) -> bool {
+        self.is_directed
     }
 }
 

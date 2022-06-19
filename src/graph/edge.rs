@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::f32::consts::PI;
 
-use egui_tetra::State;
 use tetra::graphics::mesh::GeometryBuilder;
 use tetra::graphics::{mesh::Mesh, Color, DrawParams};
 use tetra::math::Vec2;
@@ -28,7 +27,8 @@ pub struct Edge {
     color: Color,
     enabled: bool,
 
-    shape: Mesh,
+    arrow: Mesh,
+    line: Mesh,
 }
 
 impl Edge {
@@ -58,7 +58,8 @@ impl Edge {
             from,
             to,
             color: Color::BLACK,
-            shape: Edge::create_arrow(ctx, from, to),
+            arrow: Edge::create_arrow(ctx, from, to),
+            line: Mesh::polyline(ctx, BASE_STROKE_WIDTH, &[from, to]).unwrap(),
             enabled: true,
         }
     }
@@ -66,7 +67,8 @@ impl Edge {
     pub fn update_position(&mut self, ctx: &mut Context, from: Position, to: Position) {
         self.from = from;
         self.to = to;
-        self.shape = Edge::create_arrow(ctx, from, to);
+        self.arrow = Edge::create_arrow(ctx, from, to);
+        self.line = Mesh::polyline(ctx, BASE_STROKE_WIDTH, &[from, to]).unwrap();
     }
 
     pub fn disable_edge(&mut self) {
@@ -128,6 +130,19 @@ impl Edge {
 
         false
     }
+
+    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context, directed: bool) {
+        if directed {
+            self.arrow.draw(ctx, self.get_draw_params());
+        } else {
+            self.line.draw(ctx, self.get_draw_params());
+
+        }
+    }
 }
 
 // todo think if this should be a tetra state. I believe we should implement a
@@ -135,22 +150,3 @@ impl Edge {
 // Using tetra's State seems like a overkill, because we have to implement
 // dummy functions we never used, just to satisfy the constraint.
 // It seems like there is no benefit in using tetra's state, other than consistency and using libary feature
-impl State<Box<dyn Error>> for Edge {
-    fn update(
-        &mut self,
-        _ctx: &mut Context,
-        _egui_ctx: &egui_tetra::egui::CtxRef,
-    ) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
-    fn draw(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &egui_tetra::egui::CtxRef,
-    ) -> Result<(), Box<dyn Error>> {
-        self.shape.draw(ctx, self.get_draw_params());
-
-        Ok(())
-    }
-}

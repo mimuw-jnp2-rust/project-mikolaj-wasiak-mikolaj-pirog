@@ -123,6 +123,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             ctx,
             egui_ctx,
             self.camera.rotation,
+            self.ui_data.is_directed(),
         );
 
         graphics::reset_transform_matrix(ctx);
