@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use dyn_partial_eq::DynPartialEq;
-use petgraph::EdgeType;
 use petgraph::graph::EdgeIndex;
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
+use petgraph::EdgeType;
 use petgraph::Graph;
 use tetra::graphics::Color;
 

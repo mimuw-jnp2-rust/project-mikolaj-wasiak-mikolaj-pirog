@@ -1,5 +1,4 @@
 use egui_tetra::egui::CtxRef;
-use egui_tetra::State;
 use petgraph::{
     graph::NodeIndex,
     Directed,
@@ -61,6 +60,7 @@ pub trait GraphOnCanvas {
         ctx: &mut Context,
         egui_ctx: &CtxRef,
         rotation: f32,
+        directed: bool,
     );
 }
 
@@ -201,9 +201,10 @@ impl GraphOnCanvas for Graph {
         ctx: &mut Context,
         egui_ctx: &CtxRef,
         rotation: f32,
+        directed: bool,
     ) {
         for edge in self.edge_weights_mut() {
-            edge.draw(ctx, egui_ctx).unwrap();
+            edge.draw(ctx, directed);
         }
 
         for node in self.node_weights_mut() {
