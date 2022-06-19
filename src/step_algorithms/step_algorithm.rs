@@ -2,23 +2,32 @@ use std::{any::Any, collections::VecDeque, fmt::Debug};
 
 use dyn_partial_eq::dyn_partial_eq;
 use petgraph::graph::NodeIndex;
-use petgraph::Directed;
-
-use crate::graph::Graph;
+use petgraph::{Directed, EdgeType, Graph, Undirected};
 
 use tetra::Context;
 
 use super::Timer;
 
-pub type GenericGraph<N, E> = petgraph::Graph<N, E, Directed, u32>;
-
 #[dyn_partial_eq]
 pub trait Step: Any + Debug {
-    fn apply_step(&self, graph: &mut Graph);
+    fn apply_step(&self, graph: &mut crate::graph::Graph);
 }
 
-pub trait StepAlgorithm<N, E> {
-    fn get_result(self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait StepAlgorithm {
+    fn get_result<N, E, D: EdgeType>(self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult;
+}
+
+pub trait UndirectedStepAlgorithm<N, E> {
+    fn get_result(
+        self,
+        graph: &Graph<N, E, Undirected>,
+        start_idx: NodeIndex,
+    ) -> StepAlgorithmResult;
+}
+
+pub trait DirectedStepAlgorithm<N, E> {
+    fn get_result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex)
+        -> StepAlgorithmResult;
 }
 
 pub struct StepAlgorithmResult {
@@ -49,7 +58,7 @@ impl StepAlgorithmResult {
         self.timer_mut().start();
     }
 
-    pub fn update(&mut self, ctx: &mut Context, graph: &mut Graph) {
+    pub fn update(&mut self, ctx: &mut Context, graph: &mut crate::graph::Graph) {
         if self.timer_mut().update(ctx) {
             if let Some(alg_step) = self.steps.pop_front() {
                 alg_step.apply_step(graph);
@@ -61,13 +70,13 @@ impl StepAlgorithmResult {
         }
     }
 
-    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut Graph, on: bool) {
+    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut crate::graph::Graph, on: bool) {
         if let Some(node) = graph.node_weight_mut(self.start_idx) {
             node.set_ignore_force(on)
         }
     }
 
-    pub fn show_algorithm(&mut self, graph: &mut Graph) {
+    pub fn show_algorithm(&mut self, graph: &mut crate::graph::Graph) {
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
             edge.disable_edge();

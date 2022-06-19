@@ -5,11 +5,12 @@ use dyn_partial_eq::DynPartialEq;
 use petgraph::graph::EdgeIndex;
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
+use petgraph::EdgeType;
+use petgraph::Graph;
 use tetra::graphics::Color;
 
 use super::StepAlgorithm;
 use super::StepAlgorithmResult;
-use crate::step_algorithms::step_algorithm::GenericGraph;
 use crate::step_algorithms::step_algorithm::Step;
 
 #[derive(PartialEq, Debug)]
@@ -67,19 +68,15 @@ pub struct Dfs {
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E> StepAlgorithm<N, E> for Dfs {
-    fn get_result(
-        mut self,
-        graph: &GenericGraph<N, E>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult {
+impl StepAlgorithm for Dfs {
+    fn get_result<N, E, D: EdgeType>(mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult {
         self.dfs(graph, start_idx);
         StepAlgorithmResult::from_steps(self.steps, start_idx)
     }
 }
 
 impl Dfs {
-    pub fn from_graph<N, E>(graph: &GenericGraph<N, E>) -> Dfs {
+    pub fn from_graph<N, E, D: EdgeType>(graph: &Graph<N, E, D>) -> Dfs {
         let mut states = HashMap::new();
         for index in graph.node_indices() {
             states.insert(index, NodeState::NotVisited);
@@ -90,11 +87,11 @@ impl Dfs {
         }
     }
 
-    fn dfs<N, E>(&mut self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) {
+    fn dfs<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
         self.dfs_helper(graph, start_idx);
     }
 
-    fn dfs_helper<N, E>(&mut self, graph: &GenericGraph<N, E>, node_index: NodeIndex) {
+    fn dfs_helper<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex) {
         self.steps
             .push_back(Box::new(NodeStep::new(node_index, NodeState::Queued)));
 
@@ -122,7 +119,9 @@ impl Dfs {
 
 #[cfg(test)]
 mod tests {
-    use super::{Dfs, GenericGraph};
+    use petgraph::EdgeType;
+
+    use super::Dfs;
     use crate::step_algorithms::{
         dfs::{EdgeStep, NodeState, NodeStep},
         step_algorithm::Step,
@@ -130,12 +129,10 @@ mod tests {
     };
     use std::collections::VecDeque;
 
-    #[test]
-    fn small_test() {
-        let mut graph = GenericGraph::<u32, u32>::new();
-        let a = graph.add_node(1);
-        let b = graph.add_node(2);
-        let edge_idx = graph.add_edge(a, b, 0);
+    fn small_test_main<N: Default, E: Default, D: EdgeType>(mut graph: petgraph::Graph<N, E, D>) {
+        let a = graph.add_node(N::default());
+        let b = graph.add_node(N::default());
+        let edge_idx = graph.add_edge(a, b, E::default());
 
         let res = Dfs::from_graph(&graph).get_result(&graph, a);
 
@@ -147,5 +144,17 @@ mod tests {
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Visited)));
 
         assert_eq!(res.get_steps(), &desired);
+    }
+
+    #[test]
+    fn small_test_directed() {
+        let graph = petgraph::Graph::<u32, u32, petgraph::Directed>::new();
+        small_test_main(graph);
+    }
+
+    #[test]
+    fn small_test_undirected() {
+        let graph = petgraph::Graph::<u32, u32, petgraph::Undirected>::new_undirected();
+        small_test_main(graph);    
     }
 }

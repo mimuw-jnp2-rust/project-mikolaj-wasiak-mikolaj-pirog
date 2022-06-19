@@ -21,6 +21,7 @@ pub const PUSH_FORCE_DISTANCE: f32 = 150.;
 pub const PULL_FORCE_MIN_DISTANCE: f32 = 100.;
 pub const PULL_FORCE_FORCE_AT_TWICE_DISTANCE: f32 = 500.;
 
+#[derive(Clone)]
 pub struct Edge {
     from: Position,
     to: Position,
