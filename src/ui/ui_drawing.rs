@@ -166,8 +166,9 @@ fn create_algo_button<T: StepAlgorithm>(game_state: &mut GameState, selected_idx
         .clicked()
     {
         if let Some(idx) = idx_opt {
-            
-            let result = algo.get_result(&game_state.graph, idx);
+            let is_directed = game_state.ui_data.is_directed;
+            let graph_copy = game_state.graph.clone().into_edge_type::<if is_directed { Directed } else { Undirected }>();
+            let result = algo.get_result(&graph_copy, idx);
             game_state.add_algorithm(result);
         }
     }
@@ -191,7 +192,8 @@ fn create_undirected_algo_button<T: UndirectedStepAlgorithm>(game_state: &mut Ga
         .clicked()
     {
         if let Some(idx) = idx_opt {
-            let result = algo.get_result(&game_state.graph, idx);
+            let graph_copy = game_state.graph.clone().into_edge_type::<Undirected>();
+            let result = algo.get_result(&graph_copy, idx);
             game_state.add_algorithm(result);
         }
     }
