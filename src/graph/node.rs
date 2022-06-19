@@ -18,11 +18,13 @@ const BASE_RADIUS: f32 = 20.;
 const BASE_BORDER_SIZE: f32 = 4.;
 const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
 
+#[derive(Clone)]
 pub enum NodeHighlight {
     Highlighted,
     Normal,
 }
 
+#[derive(Clone)]
 pub struct Node {
     position: Position,
     radius: f32,

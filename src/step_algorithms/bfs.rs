@@ -2,14 +2,15 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use dyn_partial_eq::DynPartialEq;
+use petgraph::EdgeType;
 use petgraph::graph::EdgeIndex;
 use petgraph::graph::NodeIndex;
 use petgraph::Direction;
+use petgraph::Graph;
 use tetra::graphics::Color;
 
 use super::StepAlgorithm;
 use super::StepAlgorithmResult;
-use crate::step_algorithms::step_algorithm::GenericGraph;
 use crate::step_algorithms::step_algorithm::Step;
 
 #[derive(PartialEq, Debug)]
@@ -67,10 +68,10 @@ pub struct Bfs {
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E> StepAlgorithm<N, E> for Bfs {
+impl<N, E, D: EdgeType> StepAlgorithm<N, E, D> for Bfs {
     fn get_result(
         mut self,
-        graph: &GenericGraph<N, E>,
+        graph: &Graph<N, E, D>,
         start_idx: NodeIndex,
     ) -> StepAlgorithmResult {
         self.bfs(graph, start_idx);
@@ -79,7 +80,7 @@ impl<N, E> StepAlgorithm<N, E> for Bfs {
 }
 
 impl Bfs {
-    pub fn from_graph<N, E>(graph: &GenericGraph<N, E>) -> Bfs {
+    pub fn from_graph<N, E, D: EdgeType>(graph: &Graph<N, E, D>) -> Bfs {
         let mut states = HashMap::new();
         for index in graph.node_indices() {
             states.insert(index, NodeState::NotVisited);
@@ -90,7 +91,7 @@ impl Bfs {
         }
     }
 
-    fn bfs<N, E>(&mut self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) {
+    fn bfs<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
         let mut q = VecDeque::<NodeIndex>::new();
         q.push_back(start_idx);
         self.steps
@@ -105,21 +106,22 @@ impl Bfs {
                         self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
                         self.steps
                             .push_back(Box::new(NodeStep::new(other_node_idx, NodeState::Queued)));
-                        
+
                         self.states.insert(other_node_idx, NodeState::Queued);
                         q.push_back(other_node_idx);
                     }
                 }
             }
             self.states.insert(idx, NodeState::Visited);
-            self.steps.push_back(Box::new(NodeStep::new(idx, NodeState::Visited)));
+            self.steps
+                .push_back(Box::new(NodeStep::new(idx, NodeState::Visited)));
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Bfs, GenericGraph};
+    use super::Bfs;
     use crate::step_algorithms::{
         bfs::{EdgeStep, NodeState, NodeStep},
         step_algorithm::Step,
@@ -129,7 +131,7 @@ mod tests {
 
     #[test]
     fn small_test() {
-        let mut graph = GenericGraph::<u32, u32>::new();
+        let mut graph = petgraph::Graph::<u32, u32, petgraph::Directed, u32>::new();
         let a = graph.add_node(1);
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);

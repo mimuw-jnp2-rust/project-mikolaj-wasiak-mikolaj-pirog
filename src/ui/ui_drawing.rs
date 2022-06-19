@@ -1,4 +1,5 @@
 use egui_tetra::egui::{self, Button};
+use petgraph::Undirected;
 
 use crate::graph::edge::{
     PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
@@ -186,8 +187,9 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
         {
             if let Some(idx) = idx_opt {
                 //game_state.graph.reset_state();
-                let algorithm = Bfs::from_graph(&game_state.graph);
-                let result = algorithm.get_result(&game_state.graph, idx);
+                let graph_copy = game_state.graph.clone().into_edge_type::<Undirected>();
+                let algorithm = Bfs::from_graph(&graph_copy);
+                let result = algorithm.get_result(&graph_copy, idx);
                 game_state.add_algorithm(result);
             }
         }
