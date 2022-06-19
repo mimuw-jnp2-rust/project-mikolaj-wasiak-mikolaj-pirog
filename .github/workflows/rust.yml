@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: alsa
-      run: sudo apt-get install -y alsa-utils
+      run: sudo apt-get install -y alsa-lib
     - name: Clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
     - name: Fmt
@@ -28,6 +28,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: alsa
-      run: sudo apt-get install -y alsa-utils
+      run: sudo apt-get install -y alsa-lib
     - name: Run tests
       run: cargo test --verbose
