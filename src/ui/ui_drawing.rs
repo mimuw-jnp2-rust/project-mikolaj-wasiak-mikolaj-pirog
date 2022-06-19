@@ -196,7 +196,7 @@ fn create_algo_button<T: StepAlgorithm>(
     }
 }
 
-fn create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
+fn _create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
     game_state: &mut GameState,
     selected_idx_opt: Option<NodeIndex>,
     ui: &mut Ui,
@@ -217,7 +217,7 @@ fn create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
     }
 }
 
-fn create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
+fn _create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
     game_state: &mut GameState,
     selected_idx_opt: Option<NodeIndex>,
     ui: &mut Ui,

@@ -140,7 +140,6 @@ impl Edge {
             self.arrow.draw(ctx, self.get_draw_params());
         } else {
             self.line.draw(ctx, self.get_draw_params());
-
         }
     }
 }

@@ -14,7 +14,11 @@ pub trait Step: Any + Debug {
 }
 
 pub trait StepAlgorithm {
-    fn get_result<N, E, D: EdgeType>(self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult;
+    fn get_result<N, E, D: EdgeType>(
+        self,
+        graph: &Graph<N, E, D>,
+        start_idx: NodeIndex,
+    ) -> StepAlgorithmResult;
 }
 
 pub trait UndirectedStepAlgorithm<N, E> {

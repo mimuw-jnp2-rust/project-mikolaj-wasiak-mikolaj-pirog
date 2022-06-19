@@ -69,7 +69,11 @@ pub struct Dfs {
 }
 
 impl StepAlgorithm for Dfs {
-    fn get_result<N, E, D: EdgeType>(mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult {
+    fn get_result<N, E, D: EdgeType>(
+        mut self,
+        graph: &Graph<N, E, D>,
+        start_idx: NodeIndex,
+    ) -> StepAlgorithmResult {
         self.dfs(graph, start_idx);
         StepAlgorithmResult::from_steps(self.steps, start_idx)
     }
@@ -155,6 +159,6 @@ mod tests {
     #[test]
     fn small_test_undirected() {
         let graph = petgraph::Graph::<u32, u32, petgraph::Undirected>::new_undirected();
-        small_test_main(graph);    
+        small_test_main(graph);
     }
 }
