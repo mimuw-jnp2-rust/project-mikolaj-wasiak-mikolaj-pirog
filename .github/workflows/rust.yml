@@ -10,8 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  clippy-and-fmt:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +19,11 @@ jobs:
       run: cargo clippy --all-targets --all-features -- -D warnings
     - name: Fmt
       run: cargo fmt --check
-    - name: Build
-      run: cargo build --verbose
+  
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
     - name: Run tests
       run: cargo test --verbose
