@@ -27,6 +27,7 @@ pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {
     fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>>;
+    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex>;
     fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex);
 
     fn move_node(&mut self, ctx: &mut Context, idx: NodeIndex, position: Position);
@@ -65,14 +66,22 @@ pub trait GraphOnCanvas {
 
 impl GraphOnCanvas for Graph {
     fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>> {
-        // Reversing to select node that is on top
+        // Reversing to select node that is on top.
         self.node_indices().rev().find(|idx| {
             self.node_weight(*idx)
                 .map_or(false, |node| node.contains(point))
         })
     }
 
-    // Wrapper for add_edge function
+    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex> {
+        // Reversing to select node that is on top.
+        self.edge_indices().rev().find(|idx| {
+            self.edge_weight(*idx)
+                .map_or(false, |edge| edge.is_point_in_shape(point))
+        })
+    }
+
+    // Wrapper for add_edge function.
     fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex) {
         let edge = Edge::new(
             ctx,
@@ -82,7 +91,7 @@ impl GraphOnCanvas for Graph {
                 .map_or(Position::zero(), |node| node.position()),
         );
 
-        self.add_edge(from, to, edge);
+        self.update_edge(from, to, edge);
         println!("Connecting {} -> {}", from.index(), to.index());
     }
 
@@ -198,7 +207,9 @@ impl GraphOnCanvas for Graph {
         }
 
         for node in self.node_weights_mut() {
+
             node.draw(ctx, egui_ctx, mouse_position, rotation);
+
         }
     }
 }

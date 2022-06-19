@@ -4,6 +4,7 @@ use std::f32::consts::PI;
 use egui_tetra::State;
 use tetra::graphics::mesh::GeometryBuilder;
 use tetra::graphics::{mesh::Mesh, Color, DrawParams};
+use tetra::math::Vec2;
 use tetra::Context;
 
 use super::Position;
@@ -83,6 +84,7 @@ impl Edge {
 
     fn get_draw_params(&self) -> DrawParams {
         DrawParams::new()
+            // What is the purpose of this line? After disabling it, the program behaves the same
             .position(Position::zero())
             .color(self.color)
     }
@@ -102,6 +104,28 @@ impl Edge {
                 (distance / config.min_distance() - 1.) * config.force_at_twice_distance();
             direction * force_value
         }
+    }
+
+    pub fn is_point_in_shape(&self, point: Vec2<f32>) -> bool {
+        // We have to make sure that the point is between the lines,
+        // otherwise it would be possible to remove edge by clicking anywhere along the line (from, to)
+        // since triangle area check would yield zero.
+        if !((point.ge(&self.from) && point.le(&self.to))
+            || (point.ge(&self.to) && point.le(&self.from)))
+        {
+            return false;
+        }
+
+        let max_triangle_area =
+            Vec2::triangle_area(self.from, self.to, self.from + 1.5 * BASE_STROKE_WIDTH);
+
+        let triangle_area = Vec2::triangle_area(self.from, self.to, point);
+
+        if triangle_area <= max_triangle_area {
+            return true;
+        }
+
+        false
     }
 }
 
