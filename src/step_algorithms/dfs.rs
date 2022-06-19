@@ -68,8 +68,8 @@ pub struct Dfs {
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E, D: EdgeType> StepAlgorithm<N, E, D> for Dfs {
-    fn get_result(mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult {
+impl StepAlgorithm for Dfs {
+    fn get_result<N, E, D: EdgeType>(mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult {
         self.dfs(graph, start_idx);
         StepAlgorithmResult::from_steps(self.steps, start_idx)
     }

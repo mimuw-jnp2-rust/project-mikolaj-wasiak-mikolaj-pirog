@@ -2,7 +2,7 @@ use std::{any::Any, collections::VecDeque, fmt::Debug};
 
 use dyn_partial_eq::dyn_partial_eq;
 use petgraph::graph::NodeIndex;
-use petgraph::{Graph, EdgeType};
+use petgraph::{Directed, EdgeType, Graph, Undirected};
 
 use tetra::Context;
 
@@ -13,16 +13,21 @@ pub trait Step: Any + Debug {
     fn apply_step(&self, graph: &mut crate::graph::Graph);
 }
 
-pub trait StepAlgorithm<N, E, D: EdgeType>  {
-    fn get_result(self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait StepAlgorithm {
+    fn get_result<N, E, D: EdgeType>(self, graph: &Graph<N, E, D>, start_idx: NodeIndex) -> StepAlgorithmResult;
 }
 
-pub trait UndirectedStepAlgorithm<N, E>  {
-    fn get_result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait UndirectedStepAlgorithm<N, E> {
+    fn get_result(
+        self,
+        graph: &Graph<N, E, Undirected>,
+        start_idx: NodeIndex,
+    ) -> StepAlgorithmResult;
 }
 
-pub trait DirectedStepAlgorithm<N, E>  {
-    fn get_result(self, graph: &Graph<N, E, Undirected>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait DirectedStepAlgorithm<N, E> {
+    fn get_result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex)
+        -> StepAlgorithmResult;
 }
 
 pub struct StepAlgorithmResult {

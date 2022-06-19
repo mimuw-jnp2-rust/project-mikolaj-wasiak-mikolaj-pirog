@@ -68,8 +68,8 @@ pub struct Bfs {
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E, D: EdgeType> StepAlgorithm<N, E, D> for Bfs {
-    fn get_result(
+impl StepAlgorithm for Bfs {
+    fn get_result<N, E, D: EdgeType>(
         mut self,
         graph: &Graph<N, E, D>,
         start_idx: NodeIndex,
