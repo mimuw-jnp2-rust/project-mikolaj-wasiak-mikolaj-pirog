@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: alsa
-      run: suda apt-get update -y &&
+      run: sudo apt-get update -y &&
            sudo apt-get install -y alsa-lib
     - name: Clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
@@ -29,7 +29,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: alsa
-      run: suda apt-get update -y &&
+      run: sudo apt-get update -y &&
            sudo apt-get install -y alsa-lib
     - name: Run tests
       run: cargo test --verbose
