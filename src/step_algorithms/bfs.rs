@@ -105,14 +105,15 @@ impl Bfs {
                         self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
                         self.steps
                             .push_back(Box::new(NodeStep::new(other_node_idx, NodeState::Queued)));
-                        
+
                         self.states.insert(other_node_idx, NodeState::Queued);
                         q.push_back(other_node_idx);
                     }
                 }
             }
             self.states.insert(idx, NodeState::Visited);
-            self.steps.push_back(Box::new(NodeStep::new(idx, NodeState::Visited)));
+            self.steps
+                .push_back(Box::new(NodeStep::new(idx, NodeState::Visited)));
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
 
-use crate::step_algorithms::{Dfs, StepAlgorithm, Bfs};
+use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm};
 
 use crate::GameState;
 use tetra::Context;

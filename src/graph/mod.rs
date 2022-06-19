@@ -207,9 +207,7 @@ impl GraphOnCanvas for Graph {
         }
 
         for node in self.node_weights_mut() {
-
             node.draw(ctx, egui_ctx, mouse_position, rotation);
-
         }
     }
 }

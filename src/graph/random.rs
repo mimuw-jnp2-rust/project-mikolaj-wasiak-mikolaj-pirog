@@ -22,19 +22,14 @@ pub fn generate(ctx: &mut Context, node_count: u32, edge_count: u32, font: Font)
     let mut rng = rand::thread_rng();
     let indecies_weight = graph
         .node_indices()
-        .map(|idx| -> (NodeIndex, u32) {
-            (
-                idx,
-                edge_count - graph.neighbors(idx.clone()).count() as u32,
-            )
-        })
+        .map(|idx| -> (NodeIndex, u32) { (idx, edge_count - graph.neighbors(idx).count() as u32) })
         .collect::<Vec<(NodeIndex, u32)>>();
     for _ in 0..edge_count {
         let a_res = indecies_weight.choose_weighted(&mut rng, |idx| idx.1);
         let b_res = indecies_weight.choose_weighted(&mut rng, |idx| idx.1);
         if let (Ok(a), Ok(b)) = (a_res, b_res) {
             if a != b {
-                graph.connect_nodes(ctx, a.0.clone(), b.0.clone());
+                graph.connect_nodes(ctx, a.0, b.0);
             }
         }
     }
