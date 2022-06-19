@@ -7,8 +7,8 @@ use tetra::Context;
 use crate::graph::Position;
 
 const CAMERA_ZOOM_SPEED: f32 = 0.05;
-pub const Y_AXIS_MOVE_SPEED: f32 = 10.;
-pub const X_AXIS_MOVE_SPEED: f32 = 10.;
+pub const Y_AXIS_MOVE_SPEED: f32 = 7.;
+pub const X_AXIS_MOVE_SPEED: f32 = 7.;
 const ROTATION_SPEED: f32 = 0.05;
 
 pub trait CameraState {
@@ -22,26 +22,14 @@ impl CameraState for Camera {
         // Only y coordinate is accessed because x corresponds to horizontal move of mouse wheel.
         if let tetra::Event::MouseWheelMoved { amount } = &event {
             if amount.y > 0 {
-                self.scale += CAMERA_ZOOM_SPEED;
-            } else {
+                if !(self.scale.x >= f32::MAX - CAMERA_ZOOM_SPEED
+                    || self.scale.y >= f32::MAX - CAMERA_ZOOM_SPEED)
+                {
+                    self.scale += CAMERA_ZOOM_SPEED;
+                }
+            } else if (self.scale - CAMERA_ZOOM_SPEED).are_all_positive() {
                 self.scale -= CAMERA_ZOOM_SPEED;
             }
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::W } = &event {
-            self.position += Position::unit_y().rotated_z(-self.rotation) * Y_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::S } = &event {
-            self.position -= Position::unit_y().rotated_z(-self.rotation) * Y_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::A } = &event {
-            self.position += Position::unit_x().rotated_z(-self.rotation) * X_AXIS_MOVE_SPEED;
-        }
-
-        if let tetra::Event::KeyPressed { key: Key::D } = &event {
-            self.position -= Position::unit_x().rotated_z(-self.rotation) * X_AXIS_MOVE_SPEED;
         }
 
         self.update();
@@ -50,6 +38,22 @@ impl CameraState for Camera {
     }
 
     fn update_camera_transformation(&mut self, ctx: &mut Context) -> Result<(), Box<dyn Error>> {
+        if tetra::input::is_key_down(ctx, Key::W) {
+            self.position += Position::unit_y().rotated_z(-self.rotation) * Y_AXIS_MOVE_SPEED;
+        }
+
+        if tetra::input::is_key_down(ctx, Key::S) {
+            self.position -= Position::unit_y().rotated_z(-self.rotation) * Y_AXIS_MOVE_SPEED;
+        }
+
+        if tetra::input::is_key_down(ctx, Key::A) {
+            self.position += Position::unit_x().rotated_z(-self.rotation) * X_AXIS_MOVE_SPEED;
+        }
+
+        if tetra::input::is_key_down(ctx, Key::D) {
+            self.position -= Position::unit_x().rotated_z(-self.rotation) * X_AXIS_MOVE_SPEED;
+        }
+
         if tetra::input::is_key_down(ctx, Key::Q) {
             self.rotation += ROTATION_SPEED;
         }
