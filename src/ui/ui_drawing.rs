@@ -2,83 +2,28 @@ use egui_tetra::egui::{self, Button, Ui};
 use petgraph::graph::NodeIndex;
 use petgraph::{Directed, Undirected};
 
-use crate::graph::edge::{
-    Edge, PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
-    PUSH_FORCE_FORCE,
-};
-use crate::graph::gravity::{PullForceConfig, PushForceConfig};
+use crate::graph::edge::Edge;
+
 use crate::graph::node::Node;
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
+
+use crate::ui::ui_state::UiMode;
 
 use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm};
 use crate::step_algorithms::{DirectedStepAlgorithm, UndirectedStepAlgorithm};
 use crate::GameState;
 use tetra::Context;
 
-#[derive(PartialEq)]
-enum UiState {
-    Edit,
-    Algorithm,
-}
-
-pub struct UiData {
-    state: UiState,
-
-    is_directed: bool,
-
-    //   force:
-    push_conf: PushForceConfig,
-    pull_conf: PullForceConfig,
-
-    //   random-gen:
-    node_count: u32,
-    edge_count: u32,
-}
-
-impl UiData {
-    pub fn new() -> UiData {
-        UiData {
-            is_directed: true,
-            push_conf: PushForceConfig::new(PUSH_FORCE_FORCE, PUSH_FORCE_DISTANCE),
-            pull_conf: PullForceConfig::new(
-                PULL_FORCE_MIN_DISTANCE,
-                PULL_FORCE_FORCE_AT_TWICE_DISTANCE,
-            ),
-            node_count: 10,
-            edge_count: 15,
-            state: UiState::Edit,
-        }
-    }
-
-    pub fn push_conf(&self) -> PushForceConfig {
-        self.push_conf
-    }
-
-    pub fn pull_conf(&self) -> PullForceConfig {
-        self.pull_conf
-    }
-
-    pub fn is_directed(&self) -> bool {
-        self.is_directed
-    }
-}
-
-impl Default for UiData {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     egui::Window::new("Controls").show(egui_ctx, |ui| {
-        ui.checkbox(&mut game_state.ui_data.is_directed, "directed");
+        ui.checkbox(game_state.ui_data.directed_mut(), "directed");
         ui.horizontal(|ui| {
-            ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
+            ui.selectable_value(game_state.ui_data.state_mut(), UiMode::Edit, "Edit graph");
             ui.selectable_value(
-                &mut game_state.ui_data.state,
-                UiState::Algorithm,
+                game_state.ui_data.state_mut(),
+                UiMode::Algorithm,
                 "Show algos",
             );
         });
@@ -95,17 +40,17 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
     egui::Window::new("Edit").show(egui_ctx, |ui| {
         ui.horizontal(|ui| {
             ui.label("Nodes");
-            ui.add(egui::DragValue::new(&mut game_state.ui_data.node_count));
+            ui.add(egui::DragValue::new(game_state.ui_data.node_count_mut()));
         });
         ui.horizontal(|ui| {
             ui.label("Edges");
-            ui.add(egui::DragValue::new(&mut game_state.ui_data.edge_count));
+            ui.add(egui::DragValue::new(game_state.ui_data.node_count_mut()));
         });
         if ui.button("Generate").clicked() {
             game_state.graph = generate(
                 ctx,
-                game_state.ui_data.node_count,
-                game_state.ui_data.edge_count,
+                *game_state.ui_data.node_count_mut(),
+                *game_state.ui_data.edge_count(),
                 game_state.font(),
             );
         }
@@ -127,32 +72,34 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
             );
         });
 
-        // FIXME: reference to ephemeral variables - can't edit force/distance
         ui.heading("Forces");
         ui.label("Push:");
         ui.horizontal(|ui| {
             ui.label("Value");
             ui.add(egui::DragValue::new(
-                &mut game_state.ui_data.push_conf().force(),
+                game_state.ui_data.push_conf_mut().force_mut(),
             ));
         });
         ui.horizontal(|ui| {
             ui.label("Distance");
             ui.add(egui::DragValue::new(
-                &mut game_state.ui_data.push_conf().distance(),
+                game_state.ui_data.push_conf_mut().distance_mut(),
             ));
         });
         ui.label("Pull:");
         ui.horizontal(|ui| {
             ui.label("Value");
             ui.add(egui::DragValue::new(
-                &mut game_state.ui_data.pull_conf().force_at_twice_distance(),
+                game_state
+                    .ui_data
+                    .pull_conf_mut()
+                    .force_at_twice_distance_mut(),
             ));
         });
         ui.horizontal(|ui| {
             ui.label("Min Distance");
             ui.add(egui::DragValue::new(
-                &mut game_state.ui_data.pull_conf().min_distance(),
+                game_state.ui_data.pull_conf_mut().min_distance_mut(),
             ));
         });
 
@@ -184,12 +131,12 @@ fn create_algo_button<T: StepAlgorithm>(
         .clicked()
     {
         if let Some(idx) = selected_idx_opt {
-            let is_directed = game_state.ui_data.is_directed;
+            let is_directed = game_state.ui_data.directed();
             let graph_copy = game_state.graph.clone();
             let result = if is_directed {
-                algo.get_result(&graph_copy.into_edge_type::<Directed>(), idx)
+                algo.result(&graph_copy.into_edge_type::<Directed>(), idx)
             } else {
-                algo.get_result(&graph_copy.into_edge_type::<Undirected>(), idx)
+                algo.result(&graph_copy.into_edge_type::<Undirected>(), idx)
             };
             game_state.add_algorithm(result);
         }
@@ -205,13 +152,13 @@ fn _create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
 ) {
     if ui
         .add_enabled(
-            matches!(selected_idx_opt, Some(_)) && game_state.ui_data.is_directed,
+            matches!(selected_idx_opt, Some(_)) && game_state.ui_data.directed(),
             Button::new(button_name),
         )
         .clicked()
     {
         if let Some(idx) = selected_idx_opt {
-            let result = algo.get_result(&game_state.graph, idx);
+            let result = algo.result(&game_state.graph, idx);
             game_state.add_algorithm(result);
         }
     }
@@ -226,14 +173,14 @@ fn _create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
 ) {
     if ui
         .add_enabled(
-            matches!(selected_idx_opt, Some(_)) && !game_state.ui_data.is_directed,
+            matches!(selected_idx_opt, Some(_)) && !game_state.ui_data.directed(),
             Button::new(button_name),
         )
         .clicked()
     {
         if let Some(idx) = selected_idx_opt {
             let graph_copy = game_state.graph.clone().into_edge_type::<Undirected>();
-            let result = algo.get_result(&graph_copy, idx);
+            let result = algo.result(&graph_copy, idx);
             game_state.add_algorithm(result);
         }
     }
@@ -271,7 +218,7 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
 // Disable editing when algorithm is running, disable algorithm when editing
 pub fn create_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     controls_ui(game_state, ctx, egui_ctx);
-    if matches!(game_state.ui_data.state, UiState::Edit) {
+    if matches!(game_state.ui_data.state(), UiMode::Edit) {
         graph_editor_ui(game_state, ctx, egui_ctx);
     } else {
         algorithm_ui(game_state, ctx, egui_ctx);

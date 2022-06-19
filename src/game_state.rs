@@ -14,7 +14,7 @@ use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{InputState, StateData};
 use crate::step_algorithms::StepAlgorithmResult;
 use crate::ui::ui_drawing::create_ui;
-use crate::ui::ui_drawing::UiData;
+use crate::ui::ui_state::UiData;
 
 pub const SCREEN_WIDTH: f32 = 1280.;
 pub const SCREEN_HEIGHT: f32 = 800.;
@@ -97,8 +97,8 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         self.graph.update(
             ctx,
             egui_ctx,
-            &self.ui_data.push_conf(),
-            &self.ui_data.pull_conf(),
+            self.ui_data.push_conf(),
+            self.ui_data.pull_conf(),
             &self.camera,
             &mut self.mode,
         );
@@ -162,7 +162,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         {
             if self
                 .graph
-                .get_node_from_point(self.camera.mouse_position(ctx))
+                .node_from_point(self.camera.mouse_position(ctx))
                 .is_some()
             {
                 self.mode = AppMode::Write;
@@ -171,7 +171,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
         if self
             .graph
-            .get_node_from_point(self.camera.mouse_position(ctx))
+            .node_from_point(self.camera.mouse_position(ctx))
             .is_none()
         {
             self.mode = AppMode::Normal;

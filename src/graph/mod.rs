@@ -25,8 +25,8 @@ pub type Graph = petgraph::Graph<Node, Edge, Directed, u32>;
 pub type Position = Vec2<f32>;
 
 pub trait GraphOnCanvas {
-    fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>>;
-    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex>;
+    fn node_from_point(&self, point: Position) -> Option<NodeIndex<u32>>;
+    fn edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex>;
     fn connect_nodes(&mut self, ctx: &mut Context, from: NodeIndex, to: NodeIndex);
 
     fn move_node(&mut self, ctx: &mut Context, idx: NodeIndex, position: Position);
@@ -65,7 +65,7 @@ pub trait GraphOnCanvas {
 }
 
 impl GraphOnCanvas for Graph {
-    fn get_node_from_point(&self, point: Position) -> Option<NodeIndex<u32>> {
+    fn node_from_point(&self, point: Position) -> Option<NodeIndex<u32>> {
         // Reversing to select node that is on top.
         self.node_indices().rev().find(|idx| {
             self.node_weight(*idx)
@@ -73,7 +73,7 @@ impl GraphOnCanvas for Graph {
         })
     }
 
-    fn get_edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex> {
+    fn edge_from_point(&self, point: Position) -> Option<petgraph::graph::EdgeIndex> {
         // Reversing to select node that is on top.
         self.edge_indices().rev().find(|idx| {
             self.edge_weight(*idx)

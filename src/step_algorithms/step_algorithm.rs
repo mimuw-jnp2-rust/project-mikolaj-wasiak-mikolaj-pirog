@@ -14,7 +14,7 @@ pub trait Step: Any + Debug {
 }
 
 pub trait StepAlgorithm {
-    fn get_result<N, E, D: EdgeType>(
+    fn result<N, E, D: EdgeType>(
         self,
         graph: &Graph<N, E, D>,
         start_idx: NodeIndex,
@@ -22,16 +22,11 @@ pub trait StepAlgorithm {
 }
 
 pub trait UndirectedStepAlgorithm<N, E> {
-    fn get_result(
-        self,
-        graph: &Graph<N, E, Undirected>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult;
+    fn result(self, graph: &Graph<N, E, Undirected>, start_idx: NodeIndex) -> StepAlgorithmResult;
 }
 
 pub trait DirectedStepAlgorithm<N, E> {
-    fn get_result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex)
-        -> StepAlgorithmResult;
+    fn result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex) -> StepAlgorithmResult;
 }
 
 pub struct StepAlgorithmResult {
@@ -50,7 +45,7 @@ impl StepAlgorithmResult {
         }
     }
 
-    pub fn get_steps(&self) -> &VecDeque<Box<dyn Step>> {
+    pub fn steps(&self) -> &VecDeque<Box<dyn Step>> {
         &self.steps
     }
 

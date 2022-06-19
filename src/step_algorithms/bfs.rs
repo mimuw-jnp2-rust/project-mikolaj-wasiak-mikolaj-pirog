@@ -69,7 +69,7 @@ pub struct Bfs {
 }
 
 impl StepAlgorithm for Bfs {
-    fn get_result<N, E, D: EdgeType>(
+    fn result<N, E, D: EdgeType>(
         mut self,
         graph: &Graph<N, E, D>,
         start_idx: NodeIndex,
@@ -136,7 +136,7 @@ mod tests {
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
 
-        let res = Bfs::from_graph(&graph).get_result(&graph, a);
+        let res = Bfs::from_graph(&graph).result(&graph, a);
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
@@ -145,6 +145,6 @@ mod tests {
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Visited)));
         desired.push_back(Box::new(NodeStep::new(b, NodeState::Visited)));
 
-        assert_eq!(res.get_steps(), &desired);
+        assert_eq!(res.steps(), &desired);
     }
 }
