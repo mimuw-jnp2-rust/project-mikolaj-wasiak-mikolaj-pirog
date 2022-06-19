@@ -6,13 +6,13 @@ use crate::graph::gravity::{PullForceConfig, PushForceConfig};
 use std::borrow::BorrowMut;
 
 #[derive(PartialEq)]
-pub enum UiState {
+pub enum UiMode {
     Edit,
     Algorithm,
 }
 
 pub struct UiData {
-    state: UiState,
+    mode: UiMode,
 
     is_directed: bool,
 
@@ -36,7 +36,7 @@ impl UiData {
             ),
             node_count: 10,
             edge_count: 15,
-            state: UiState::Edit,
+            mode: UiMode::Edit,
         }
     }
 
@@ -44,12 +44,12 @@ impl UiData {
         self.is_directed
     }
 
-    pub fn state_mut(&mut self) -> &mut UiState {
-        self.state.borrow_mut()
+    pub fn state_mut(&mut self) -> &mut UiMode {
+        self.mode.borrow_mut()
     }
 
-    pub fn state(&self) -> &UiState {
-        &self.state
+    pub fn state(&self) -> &UiMode {
+        &self.mode
     }
 
     pub fn directed_mut(&mut self) -> &mut bool {

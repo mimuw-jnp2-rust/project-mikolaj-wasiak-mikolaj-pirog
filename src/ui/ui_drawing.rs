@@ -9,7 +9,7 @@ use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
 
-use crate::ui::ui_state::UiState;
+use crate::ui::ui_state::UiMode;
 
 use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm};
 use crate::step_algorithms::{DirectedStepAlgorithm, UndirectedStepAlgorithm};
@@ -20,10 +20,10 @@ fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::
     egui::Window::new("Controls").show(egui_ctx, |ui| {
         ui.checkbox(game_state.ui_data.directed_mut(), "directed");
         ui.horizontal(|ui| {
-            ui.selectable_value(game_state.ui_data.state_mut(), UiState::Edit, "Edit graph");
+            ui.selectable_value(game_state.ui_data.state_mut(), UiMode::Edit, "Edit graph");
             ui.selectable_value(
                 game_state.ui_data.state_mut(),
-                UiState::Algorithm,
+                UiMode::Algorithm,
                 "Show algos",
             );
         });
@@ -218,7 +218,7 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
 // Disable editing when algorithm is running, disable algorithm when editing
 pub fn create_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     controls_ui(game_state, ctx, egui_ctx);
-    if matches!(game_state.ui_data.state(), UiState::Edit) {
+    if matches!(game_state.ui_data.state(), UiMode::Edit) {
         graph_editor_ui(game_state, ctx, egui_ctx);
     } else {
         algorithm_ui(game_state, ctx, egui_ctx);
