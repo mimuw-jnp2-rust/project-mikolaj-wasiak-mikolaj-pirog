@@ -22,6 +22,8 @@ enum UiState {
 pub struct UiData {
     state: UiState,
 
+    is_directed: bool,
+
     //   force:
     push_conf: PushForceConfig,
     pull_conf: PullForceConfig,
@@ -62,7 +64,7 @@ impl Default for UiData {
 
 fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     egui::Window::new("Controls").show(egui_ctx, |ui| {
-        ui.checkbox(&mut true, "directed");
+        ui.checkbox(&mut game_state.ui_data.is_directed, "directed");
         ui.horizontal(|ui| {
             ui.selectable_value(&mut game_state.ui_data.state, UiState::Edit, "Edit graph");
             ui.selectable_value(
@@ -158,9 +160,22 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
     });
 }
 
-fn create_algo_button<T: Algorithm>(game_state: &mut GameState, selected_idx_opt: Option<NodeIndex>, ui, algo: T, button_name: &str) {
+fn create_algo_button<T: StepAlgorithm>(game_state: &mut GameState, selected_idx_opt: Option<NodeIndex>, ui, algo: T, button_name: &str) {
     if ui
         .add_enabled(matches!(idx_opt, Some(_)), Button::new(button_name))
+        .clicked()
+    {
+        if let Some(idx) = idx_opt {
+            
+            let result = algo.get_result(&game_state.graph, idx);
+            game_state.add_algorithm(result);
+        }
+    }
+}
+
+fn create_directed_algo_button<T: DirectedStepAlgorithm>(game_state: &mut GameState, selected_idx_opt: Option<NodeIndex>, ui, algo: T, button_name: &str) {
+    if ui
+        .add_enabled(matches!(idx_opt, Some(_)), Button::new(button_name) && game_state.ui_data.is_directed)
         .clicked()
     {
         if let Some(idx) = idx_opt {
@@ -169,6 +184,20 @@ fn create_algo_button<T: Algorithm>(game_state: &mut GameState, selected_idx_opt
         }
     }
 }
+
+fn create_undirected_algo_button<T: UndirectedStepAlgorithm>(game_state: &mut GameState, selected_idx_opt: Option<NodeIndex>, ui, algo: T, button_name: &str) {
+    if ui
+        .add_enabled(matches!(idx_opt, Some(_)), Button::new(button_name) && !game_state.ui_data.is_directed)
+        .clicked()
+    {
+        if let Some(idx) = idx_opt {
+            let result = algo.get_result(&game_state.graph, idx);
+            game_state.add_algorithm(result);
+        }
+    }
+}
+
+
 
 fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     if !matches!(game_state.input_state, InputState::Select(_)) {
