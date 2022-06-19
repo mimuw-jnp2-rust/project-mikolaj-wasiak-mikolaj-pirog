@@ -158,6 +158,18 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
     });
 }
 
+fn create_algo_button<T: Algorithm>(game_state: &mut GameState, selected_idx_opt: Option<NodeIndex>, ui, algo: T, button_name: &str) {
+    if ui
+        .add_enabled(matches!(idx_opt, Some(_)), Button::new(button_name))
+        .clicked()
+    {
+        if let Some(idx) = idx_opt {
+            let result = algo.get_result(&game_state.graph, idx);
+            game_state.add_algorithm(result);
+        }
+    }
+}
+
 fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     if !matches!(game_state.input_state, InputState::Select(_)) {
         game_state.input_state = InputState::Select(StateData::default());
@@ -170,29 +182,8 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
     };
 
     egui::Window::new("Show algorithms").show(egui_ctx, |ui| {
-        if ui
-            .add_enabled(matches!(idx_opt, Some(_)), Button::new("dfs"))
-            .clicked()
-        {
-            if let Some(idx) = idx_opt {
-                //game_state.graph.reset_state();
-                let algorithm = Dfs::from_graph(&game_state.graph);
-                let result = algorithm.get_result(&game_state.graph, idx);
-                game_state.add_algorithm(result);
-            }
-        }
-        if ui
-            .add_enabled(matches!(idx_opt, Some(_)), Button::new("bfs"))
-            .clicked()
-        {
-            if let Some(idx) = idx_opt {
-                //game_state.graph.reset_state();
-                let graph_copy = game_state.graph.clone().into_edge_type::<Undirected>();
-                let algorithm = Bfs::from_graph(&graph_copy);
-                let result = algorithm.get_result(&graph_copy, idx);
-                game_state.add_algorithm(result);
-            }
-        }
+        create_algo_button(game_state, idx_opt, ui, Dfs::from_graph(&game_state.graph), "dfs");
+        create_algo_button(game_state, idx_opt, ui, Bfs::from_graph(&game_state.graph), "bfs");
     });
 }
 
