@@ -62,69 +62,66 @@ impl Step for EdgeStep {
     }
 }
 
-pub struct Dfs {
+pub struct Bfs {
     steps: VecDeque<Box<dyn Step>>,
     states: HashMap<NodeIndex, NodeState>,
 }
 
-impl<N, E> StepAlgorithm<N, E> for Dfs {
+impl<N, E> StepAlgorithm<N, E> for Bfs {
     fn get_result(
         mut self,
         graph: &GenericGraph<N, E>,
         start_idx: NodeIndex,
     ) -> StepAlgorithmResult {
-        self.dfs(graph, start_idx);
+        self.bfs(graph, start_idx);
         StepAlgorithmResult::from_steps(self.steps, start_idx)
     }
 }
 
-impl Dfs {
-    pub fn from_graph<N, E>(graph: &GenericGraph<N, E>) -> Dfs {
+impl Bfs {
+    pub fn from_graph<N, E>(graph: &GenericGraph<N, E>) -> Bfs {
         let mut states = HashMap::new();
         for index in graph.node_indices() {
             states.insert(index, NodeState::NotVisited);
         }
-        Dfs {
+        Bfs {
             steps: VecDeque::new(),
             states,
         }
     }
 
-    fn dfs<N, E>(&mut self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) {
-        self.dfs_helper(graph, start_idx);
-    }
-
-    fn dfs_helper<N, E>(&mut self, graph: &GenericGraph<N, E>, node_index: NodeIndex) {
+    fn bfs<N, E>(&mut self, graph: &GenericGraph<N, E>, start_idx: NodeIndex) {
+        let mut q = VecDeque::<NodeIndex>::new();
+        q.push_back(start_idx);
         self.steps
-            .push_back(Box::new(NodeStep::new(node_index, NodeState::Queued)));
+            .push_back(Box::new(NodeStep::new(start_idx, NodeState::Queued)));
+        self.states.insert(start_idx, NodeState::Queued);
 
-        self.states.insert(node_index, NodeState::Queued);
-
-        let mut walker = graph
-            .neighbors_directed(node_index, Direction::Outgoing)
-            .detach();
-
-        while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
-            if let Some(other_state) = self.states.get(&other_node_idx) {
-                if matches!(other_state, NodeState::NotVisited) {
-                    self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
-                    self.dfs_helper(graph, other_node_idx);
+        while let Some(idx) = q.pop_front() {
+            let mut walker = graph.neighbors_directed(idx, Direction::Outgoing).detach();
+            while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
+                if let Some(other_state) = self.states.get(&other_node_idx) {
+                    if matches!(other_state, NodeState::NotVisited) {
+                        self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
+                        self.steps
+                            .push_back(Box::new(NodeStep::new(other_node_idx, NodeState::Queued)));
+                        
+                        self.states.insert(other_node_idx, NodeState::Queued);
+                        q.push_back(other_node_idx);
+                    }
                 }
             }
+            self.states.insert(idx, NodeState::Visited);
+            self.steps.push_back(Box::new(NodeStep::new(idx, NodeState::Visited)));
         }
-
-        self.steps
-            .push_back(Box::new(NodeStep::new(node_index, NodeState::Visited)));
-
-        self.states.insert(node_index, NodeState::Visited);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Dfs, GenericGraph};
+    use super::{Bfs, GenericGraph};
     use crate::step_algorithms::{
-        dfs::{EdgeStep, NodeState, NodeStep},
+        bfs::{EdgeStep, NodeState, NodeStep},
         step_algorithm::Step,
         StepAlgorithm,
     };
@@ -137,14 +134,14 @@ mod tests {
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
 
-        let res = Dfs::from_graph(&graph).get_result(&graph, a);
+        let res = Bfs::from_graph(&graph).get_result(&graph, a);
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
         desired.push_back(Box::new(EdgeStep::new(edge_idx)));
         desired.push_back(Box::new(NodeStep::new(b, NodeState::Queued)));
-        desired.push_back(Box::new(NodeStep::new(b, NodeState::Visited)));
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Visited)));
+        desired.push_back(Box::new(NodeStep::new(b, NodeState::Visited)));
 
         assert_eq!(res.get_steps(), &desired);
     }

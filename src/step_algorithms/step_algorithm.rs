@@ -29,7 +29,8 @@ pub struct StepAlgorithmResult {
 
 impl StepAlgorithmResult {
     pub fn from_steps(steps: VecDeque<Box<dyn Step>>, start_idx: NodeIndex) -> StepAlgorithmResult {
-        let timer = Timer::new(0.5, true);
+
+        let timer = Timer::new(0.2, true);
         StepAlgorithmResult {
             start_idx,
             steps,
@@ -68,8 +69,6 @@ impl StepAlgorithmResult {
     }
 
     pub fn show_algorithm(&mut self, graph: &mut Graph) {
-        //graph.reset_state();
-
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
             edge.disable_edge();
