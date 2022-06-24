@@ -10,6 +10,8 @@ use super::Position;
 
 use super::gravity::PullForceConfig;
 
+use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
+
 const BASE_STROKE_WIDTH: f32 = 5.;
 const BASE_ARROW_SCALE: f32 = 0.7;
 const BASE_ARROW_ARMS_SIZE: f32 = 25.;
@@ -87,7 +89,7 @@ impl Edge {
 
     fn draw_params(&self) -> DrawParams {
         DrawParams::new()
-            // What is the purpose of this line? After disabling it, the program behaves the same
+            // What is the purpose of this line? After disabling it, the program behaves the same // I still do not know
             .position(Position::zero())
             .color(self.color)
     }
@@ -130,22 +132,18 @@ impl Edge {
 
         false
     }
+}
 
-    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
-    pub fn draw(&mut self, ctx: &mut Context, directed: bool) {
-        if directed {
+impl TetraObject for Edge {
+    fn draw(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        if info.ui_data().directed() {
             self.arrow.draw(ctx, self.draw_params());
         } else {
             self.line.draw(ctx, self.draw_params());
         }
     }
-}
 
-// todo think if this should be a tetra state. I believe we should implement a
-// trait Drawable that will require a drawing function from a struct.
-// Using tetra's State seems like a overkill, because we have to implement
-// dummy functions we never used, just to satisfy the constraint.
-// It seems like there is no benefit in using tetra's state, other than consistency and using libary feature
+    fn update(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        ()
+    }
+}

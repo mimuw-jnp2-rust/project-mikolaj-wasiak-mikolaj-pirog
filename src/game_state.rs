@@ -13,6 +13,7 @@ use crate::camera_handling::camera_state::CameraState;
 use crate::graph::{Graph, GraphOnCanvas};
 use crate::input::input_state::{InputState, StateData};
 use crate::step_algorithms::StepAlgorithmResult;
+use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
 use crate::ui::ui_drawing::create_ui;
 use crate::ui::ui_state::UiData;
 
@@ -36,13 +37,12 @@ pub struct GameState {
     // This is problematic to make nonpublic.
     //todo pack the junk into a struct
     pub input_state: InputState,
-    camera: Camera,
 
     scaler: ScreenScaler,
 
-    pub ui_data: UiData,
     font: Font,
-    mode: AppMode,
+
+    tetra_info: TetraObjectInfo,
 
     algorithm: Option<StepAlgorithmResult>,
 }
@@ -52,7 +52,11 @@ impl GameState {
         GameState {
             graph: Graph::new(),
             input_state: InputState::Move(StateData::default()),
-            camera: Camera::new(SCREEN_WIDTH, SCREEN_HEIGHT),
+            tetra_info: TetraObjectInfo::new(
+                AppMode::Normal,
+                UiData::new(),
+                Camera::new(SCREEN_WIDTH, SCREEN_HEIGHT),
+            ),
             scaler: ScreenScaler::with_window_size(
                 ctx,
                 SCREEN_WIDTH as i32,
@@ -60,7 +64,6 @@ impl GameState {
                 ScalingMode::ShowAllPixelPerfect,
             )
             .unwrap(),
-            ui_data: UiData::new(),
             algorithm: None,
             font: {
                 let mut font = Font::vector(
@@ -72,7 +75,6 @@ impl GameState {
                 font.set_filter_mode(ctx, FilterMode::Linear);
                 font
             },
-            mode: AppMode::Normal,
         }
     }
 
@@ -84,6 +86,14 @@ impl GameState {
     pub fn font(&self) -> Font {
         self.font.clone()
     }
+
+    pub fn tetra_info(&self) -> &TetraObjectInfo {
+        &self.tetra_info
+    }
+
+    pub fn tetra_info_mut(&mut self) -> &mut TetraObjectInfo {
+        &mut self.tetra_info
+    }
 }
 
 impl egui_tetra::State<Box<dyn Error>> for GameState {
@@ -94,21 +104,16 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
     }
 
     fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
-        self.graph.update(
-            ctx,
-            egui_ctx,
-            self.ui_data.push_conf(),
-            self.ui_data.pull_conf(),
-            &self.camera,
-            &mut self.mode,
-        );
+        self.graph.update(ctx, &mut self.tetra_info);
 
         if let Some(alg) = &mut self.algorithm {
             alg.update(ctx, &mut self.graph);
         }
 
-        if let AppMode::Normal = self.mode {
-            self.camera.update_camera_transformation(ctx)
+        if let AppMode::Normal = self.tetra_info.mode() {
+            self.tetra_info
+                .camera_mut()
+                .update_camera_transformation(ctx)
         } else {
             Ok(())
         }
@@ -116,15 +121,9 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
 
     fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
-        graphics::set_transform_matrix(ctx, self.camera.as_matrix());
+        graphics::set_transform_matrix(ctx, self.tetra_info.camera().as_matrix());
 
-        self.graph.draw(
-            self.camera.mouse_position(ctx),
-            ctx,
-            egui_ctx,
-            self.camera.rotation,
-            self.ui_data.is_directed(),
-        );
+        self.graph.draw(ctx, &mut self.tetra_info);
 
         graphics::reset_transform_matrix(ctx);
 
@@ -140,8 +139,11 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         event: tetra::Event,
     ) -> Result<(), Box<dyn Error>> {
         if let tetra::Event::MouseMoved { .. } = &event {
-            self.input_state
-                .on_mouse_drag(ctx, &mut self.graph, self.camera.mouse_position(ctx));
+            self.input_state.on_mouse_drag(
+                ctx,
+                &mut self.graph,
+                self.tetra_info.camera().mouse_position(ctx),
+            );
         }
 
         if let tetra::Event::MouseButtonPressed {
@@ -151,7 +153,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
             self.input_state.on_left_click(
                 ctx,
                 &mut self.graph,
-                self.camera.mouse_position(ctx),
+                self.tetra_info.camera().mouse_position(ctx),
                 self.font.clone(),
             );
         }
@@ -162,23 +164,23 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         {
             if self
                 .graph
-                .node_from_point(self.camera.mouse_position(ctx))
+                .node_from_point(self.tetra_info.camera().mouse_position(ctx))
                 .is_some()
             {
-                self.mode = AppMode::Write;
+                *self.tetra_info.mode_mut() = AppMode::Write;
             }
         }
 
         if self
             .graph
-            .node_from_point(self.camera.mouse_position(ctx))
+            .node_from_point(self.tetra_info.camera().mouse_position(ctx))
             .is_none()
         {
-            self.mode = AppMode::Normal;
+            *self.tetra_info.mode_mut() = AppMode::Normal;
         }
 
-        if let AppMode::Normal = self.mode {
-            self.camera.handle_camera_events(event)
+        if let AppMode::Normal = self.tetra_info.mode() {
+            self.tetra_info.camera_mut().handle_camera_events(event)
         } else {
             Ok(())
         }

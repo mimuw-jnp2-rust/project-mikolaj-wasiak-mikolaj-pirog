@@ -16,6 +16,8 @@ use self::{
     node::Node,
 };
 
+use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
+
 pub mod edge;
 pub mod gravity;
 pub mod node;
@@ -43,25 +45,6 @@ pub trait GraphOnCanvas {
     fn pull_force(&mut self, pull_conf: &PullForceConfig);
 
     fn reset_state(&mut self);
-
-    fn update(
-        &mut self,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-        push_conf: &PushForceConfig,
-        pull_conf: &PullForceConfig,
-        camera: &Camera,
-        mode: &mut AppMode,
-    );
-
-    fn draw(
-        &mut self,
-        mouse_position: Vec2<f32>,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-        rotation: f32,
-        directed: bool,
-    );
 }
 
 impl GraphOnCanvas for Graph {
@@ -171,44 +154,31 @@ impl GraphOnCanvas for Graph {
             edge.reset_state();
         }
     }
+}
 
-    fn update(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &CtxRef,
-        push_conf: &PushForceConfig,
-        pull_conf: &PullForceConfig,
-        camera: &Camera,
-        mode: &mut AppMode,
-    ) {
-        self.push_force(push_conf);
-        self.pull_force(pull_conf);
+impl TetraObject for Graph {
+    fn draw(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        for edge in self.edge_weights_mut() {
+            edge.draw(ctx, info);
+        }
+
+        for node in self.node_weights_mut() {
+            node.draw(ctx, info);
+        }
+    }
+
+    fn update(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        self.push_force(info.ui_data().push_conf());
+        self.pull_force(info.ui_data().pull_conf());
 
         for node_idx in self.node_indices() {
             if let Some(pos) = self.node_weight_mut(node_idx).map(|node| {
-                node.update(ctx, camera, mode);
+                node.update(ctx, info);
                 node.consume_force(ctx);
                 node.position()
             }) {
                 self.move_node(ctx, node_idx, pos)
             }
-        }
-    }
-
-    fn draw(
-        &mut self,
-        mouse_position: Vec2<f32>,
-        ctx: &mut Context,
-        egui_ctx: &CtxRef,
-        rotation: f32,
-        directed: bool,
-    ) {
-        for edge in self.edge_weights_mut() {
-            edge.draw(ctx, directed);
-        }
-
-        for node in self.node_weights_mut() {
-            node.draw(ctx, egui_ctx, mouse_position, rotation);
         }
     }
 }

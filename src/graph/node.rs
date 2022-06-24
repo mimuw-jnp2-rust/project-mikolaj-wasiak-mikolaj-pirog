@@ -14,6 +14,8 @@ use tetra::{input, Context};
 use super::gravity::PushForceConfig;
 use super::Position;
 
+use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
+
 const BASE_RADIUS: f32 = 20.;
 const BASE_BORDER_SIZE: f32 = 4.;
 const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
@@ -137,21 +139,6 @@ impl Node {
         self.current_force = Position::zero();
     }
 
-    pub fn draw(
-        &mut self,
-        ctx: &mut Context,
-        _egui_ctx: &egui::CtxRef,
-        mouse_position: Vec2<f32>,
-        rotation: f32,
-    ) {
-        let params = self.draw_params(mouse_position);
-        self.circle.draw(ctx, params.clone().color(self.color()));
-
-        self.border.draw(ctx, params.color(self.border_color));
-
-        self.draw_text(ctx, rotation, mouse_position);
-    }
-
     pub fn set_ignore_force(&mut self, value: bool) {
         self.ignore_force = value;
         self.current_force = Position::zero();
@@ -193,11 +180,26 @@ impl Node {
             *mode = AppMode::Normal;
         }
     }
+}
 
-    pub fn update(&mut self, ctx: &mut Context, camera: &Camera, mode: &mut AppMode) {
-        if let AppMode::Write = mode {
-            if self.contains(camera.mouse_position(ctx)) {
-                self.input(ctx, mode);
+impl TetraObject for Node {
+    fn draw(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        let params = self.draw_params(info.camera().mouse_position(ctx));
+        self.circle.draw(ctx, params.clone().color(self.color()));
+
+        self.border.draw(ctx, params.color(self.border_color));
+
+        self.draw_text(
+            ctx,
+            info.camera().rotation,
+            info.camera().mouse_position(ctx),
+        );
+    }
+
+    fn update(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+        if let AppMode::Write = info.mode() {
+            if self.contains(info.camera().mouse_position(ctx)) {
+                self.input(ctx, info.mode_mut());
             }
         }
     }
