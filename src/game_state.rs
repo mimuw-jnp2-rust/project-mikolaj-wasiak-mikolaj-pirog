@@ -103,7 +103,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         Ok(())
     }
 
-    fn update(&mut self, ctx: &mut Context, egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self, ctx: &mut Context, _egui_ctx: &CtxRef) -> Result<(), Box<dyn Error>> {
         self.graph.update(ctx, &mut self.tetra_info);
 
         if let Some(alg) = &mut self.algorithm {
@@ -119,7 +119,7 @@ impl egui_tetra::State<Box<dyn Error>> for GameState {
         }
     }
 
-    fn draw(&mut self, ctx: &mut Context, egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
+    fn draw(&mut self, ctx: &mut Context, _egui_ctx: &egui::CtxRef) -> Result<(), Box<dyn Error>> {
         graphics::clear(ctx, Color::rgb(0.392, 0.584, 0.929));
         graphics::set_transform_matrix(ctx, self.tetra_info.camera().as_matrix());
 

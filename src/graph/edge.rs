@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::f32::consts::PI;
 
 use tetra::graphics::mesh::GeometryBuilder;
@@ -143,7 +142,5 @@ impl TetraObject for Edge {
         }
     }
 
-    fn update(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
-        ()
-    }
+    fn update(&mut self, _ctx: &mut Context, _info: &mut TetraObjectInfo) {}
 }

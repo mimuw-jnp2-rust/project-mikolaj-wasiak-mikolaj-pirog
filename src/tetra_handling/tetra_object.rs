@@ -2,7 +2,6 @@ use tetra::graphics::Camera;
 
 use crate::game_state::AppMode;
 use crate::ui::ui_state::UiData;
-use egui_tetra::egui::CtxRef;
 use tetra::Context;
 
 pub struct TetraObjectInfo {
