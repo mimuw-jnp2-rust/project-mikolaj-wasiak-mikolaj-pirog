@@ -12,11 +12,8 @@ use tetra::{input, Context};
 use super::gravity::PushForceConfig;
 use super::Position;
 
-
 use crate::constants::{BASE_BORDER_SIZE, BASE_RADIUS, FONT_SIZE, HIGHLIGHT_SCALE};
 use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
-
-
 
 #[derive(Clone)]
 pub enum NodeHighlight {

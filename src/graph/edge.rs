@@ -9,12 +9,9 @@ use super::Position;
 
 use super::gravity::PullForceConfig;
 
-
 use crate::constants::{BASE_ARROW_ARMS_SIZE, BASE_ARROW_SCALE, BASE_STROKE_WIDTH};
 
 use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
-
-
 
 #[derive(Clone)]
 pub struct Edge {
