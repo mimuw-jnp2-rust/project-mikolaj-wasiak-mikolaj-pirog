@@ -34,8 +34,6 @@ pub enum AppMode {
 
 pub struct GameState {
     pub graph: Graph,
-    // This is problematic to make nonpublic.
-    //todo pack the junk into a struct
     pub input_state: InputState,
 
     scaler: ScreenScaler,
