@@ -16,15 +16,7 @@ use crate::step_algorithms::StepAlgorithmResult;
 use crate::ui::ui_drawing::create_ui;
 use crate::ui::ui_state::UiData;
 
-pub const SCREEN_WIDTH: f32 = 1280.;
-pub const SCREEN_HEIGHT: f32 = 800.;
-
-// This is necessary to render fonts correctly: when font is rendered "normally", ie at desired
-// size and then we zoom in, the font becomes pixelated. To avoid this, font is
-// rendered at much bigger size than needed, and then scaled down to desired size. This operations preserve font
-// quality and result in font being very clear even at big blow up.
-pub const FONT_SIZE: f32 = 10.;
-pub const FONT_SIZE_SQUARED: f32 = FONT_SIZE * FONT_SIZE;
+use crate::constants::{FONT_SIZE_SQUARED, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 pub enum AppMode {
     Write,

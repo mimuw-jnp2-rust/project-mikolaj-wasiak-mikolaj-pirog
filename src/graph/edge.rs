@@ -10,15 +10,7 @@ use super::Position;
 
 use super::gravity::PullForceConfig;
 
-const BASE_STROKE_WIDTH: f32 = 5.;
-const BASE_ARROW_SCALE: f32 = 0.7;
-const BASE_ARROW_ARMS_SIZE: f32 = 25.;
-
-pub const PUSH_FORCE_FORCE: f32 = 1000.;
-pub const PUSH_FORCE_DISTANCE: f32 = 150.;
-
-pub const PULL_FORCE_MIN_DISTANCE: f32 = 100.;
-pub const PULL_FORCE_FORCE_AT_TWICE_DISTANCE: f32 = 500.;
+use crate::constants::{BASE_ARROW_ARMS_SIZE, BASE_ARROW_SCALE, BASE_STROKE_WIDTH};
 
 #[derive(Clone)]
 pub struct Edge {

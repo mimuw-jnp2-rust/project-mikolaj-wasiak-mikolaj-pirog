@@ -3,11 +3,12 @@ use std::error::Error;
 use egui_tetra::StateWrapper;
 use tetra::ContextBuilder;
 
-use game_state::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::constants::{SCREEN_HEIGHT, SCREEN_WIDTH};
 
 pub use crate::game_state::GameState;
 
 mod camera_handling;
+mod constants;
 mod game_state;
 mod graph;
 mod input;

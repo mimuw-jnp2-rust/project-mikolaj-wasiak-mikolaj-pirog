@@ -1,4 +1,4 @@
-use crate::graph::edge::{
+use crate::constants::{
     PULL_FORCE_FORCE_AT_TWICE_DISTANCE, PULL_FORCE_MIN_DISTANCE, PUSH_FORCE_DISTANCE,
     PUSH_FORCE_FORCE,
 };
