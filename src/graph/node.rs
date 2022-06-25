@@ -1,6 +1,6 @@
 use std::f32;
 
-use crate::game_state::{AppMode, FONT_SIZE};
+use crate::game_state::AppMode;
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
 use tetra::graphics::DrawParams;
@@ -12,11 +12,11 @@ use tetra::{input, Context};
 use super::gravity::PushForceConfig;
 use super::Position;
 
+
+use crate::constants::{BASE_BORDER_SIZE, BASE_RADIUS, FONT_SIZE, HIGHLIGHT_SCALE};
 use crate::tetra_handling::tetra_object::{TetraObject, TetraObjectInfo};
 
-const BASE_RADIUS: f32 = 20.;
-const BASE_BORDER_SIZE: f32 = 4.;
-const HIGHLIGHT_SCALE: Vec2<f32> = Vec2 { x: 1.1, y: 1.1 };
+
 
 #[derive(Clone)]
 pub enum NodeHighlight {

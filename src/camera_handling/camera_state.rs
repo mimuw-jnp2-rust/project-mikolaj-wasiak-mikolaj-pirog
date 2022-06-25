@@ -4,12 +4,8 @@ use tetra::graphics::Camera;
 use tetra::input::Key;
 use tetra::Context;
 
+use crate::constants::{CAMERA_ZOOM_SPEED, ROTATION_SPEED, X_AXIS_MOVE_SPEED, Y_AXIS_MOVE_SPEED};
 use crate::graph::Position;
-
-const CAMERA_ZOOM_SPEED: f32 = 0.05;
-pub const Y_AXIS_MOVE_SPEED: f32 = 7.;
-pub const X_AXIS_MOVE_SPEED: f32 = 7.;
-const ROTATION_SPEED: f32 = 0.05;
 
 pub trait CameraState {
     fn handle_camera_events(&mut self, event: tetra::Event) -> Result<(), Box<dyn Error>>;
