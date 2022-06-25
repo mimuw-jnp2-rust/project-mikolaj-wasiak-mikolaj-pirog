@@ -13,6 +13,7 @@ mod game_state;
 mod graph;
 mod input;
 mod step_algorithms;
+mod tetra_handling;
 mod ui;
 
 fn main() -> Result<(), Box<dyn Error>> {

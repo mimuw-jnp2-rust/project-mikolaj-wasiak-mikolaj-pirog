@@ -18,11 +18,18 @@ use tetra::Context;
 
 fn controls_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     egui::Window::new("Controls").show(egui_ctx, |ui| {
-        ui.checkbox(game_state.ui_data.directed_mut(), "directed");
+        ui.checkbox(
+            game_state.tetra_info_mut().ui_data_mut().directed_mut(),
+            "directed",
+        );
         ui.horizontal(|ui| {
-            ui.selectable_value(game_state.ui_data.state_mut(), UiMode::Edit, "Edit graph");
             ui.selectable_value(
-                game_state.ui_data.state_mut(),
+                game_state.tetra_info_mut().ui_data_mut().state_mut(),
+                UiMode::Edit,
+                "Edit graph",
+            );
+            ui.selectable_value(
+                game_state.tetra_info_mut().ui_data_mut().state_mut(),
                 UiMode::Algorithm,
                 "Show algos",
             );
@@ -40,17 +47,21 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
     egui::Window::new("Edit").show(egui_ctx, |ui| {
         ui.horizontal(|ui| {
             ui.label("Nodes");
-            ui.add(egui::DragValue::new(game_state.ui_data.node_count_mut()));
+            ui.add(egui::DragValue::new(
+                game_state.tetra_info_mut().ui_data_mut().node_count_mut(),
+            ));
         });
         ui.horizontal(|ui| {
             ui.label("Edges");
-            ui.add(egui::DragValue::new(game_state.ui_data.node_count_mut()));
+            ui.add(egui::DragValue::new(
+                game_state.tetra_info_mut().ui_data_mut().node_count_mut(),
+            ));
         });
         if ui.button("Generate").clicked() {
             game_state.graph = generate(
                 ctx,
-                *game_state.ui_data.node_count_mut(),
-                *game_state.ui_data.edge_count(),
+                *game_state.tetra_info_mut().ui_data_mut().node_count_mut(),
+                *game_state.tetra_info_mut().ui_data_mut().edge_count(),
                 game_state.font(),
             );
         }
@@ -77,13 +88,21 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
         ui.horizontal(|ui| {
             ui.label("Value");
             ui.add(egui::DragValue::new(
-                game_state.ui_data.push_conf_mut().force_mut(),
+                game_state
+                    .tetra_info_mut()
+                    .ui_data_mut()
+                    .push_conf_mut()
+                    .force_mut(),
             ));
         });
         ui.horizontal(|ui| {
             ui.label("Distance");
             ui.add(egui::DragValue::new(
-                game_state.ui_data.push_conf_mut().distance_mut(),
+                game_state
+                    .tetra_info_mut()
+                    .ui_data_mut()
+                    .push_conf_mut()
+                    .distance_mut(),
             ));
         });
         ui.label("Pull:");
@@ -91,7 +110,8 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
             ui.label("Value");
             ui.add(egui::DragValue::new(
                 game_state
-                    .ui_data
+                    .tetra_info_mut()
+                    .ui_data_mut()
                     .pull_conf_mut()
                     .force_at_twice_distance_mut(),
             ));
@@ -99,7 +119,11 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
         ui.horizontal(|ui| {
             ui.label("Min Distance");
             ui.add(egui::DragValue::new(
-                game_state.ui_data.pull_conf_mut().min_distance_mut(),
+                game_state
+                    .tetra_info_mut()
+                    .ui_data_mut()
+                    .pull_conf_mut()
+                    .min_distance_mut(),
             ));
         });
 
@@ -131,7 +155,7 @@ fn create_algo_button<T: StepAlgorithm>(
         .clicked()
     {
         if let Some(idx) = selected_idx_opt {
-            let is_directed = game_state.ui_data.directed();
+            let is_directed = game_state.tetra_info_mut().ui_data_mut().directed();
             let graph_copy = game_state.graph.clone();
             let result = if is_directed {
                 algo.result(&graph_copy.into_edge_type::<Directed>(), idx)
@@ -152,7 +176,7 @@ fn _create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
 ) {
     if ui
         .add_enabled(
-            matches!(selected_idx_opt, Some(_)) && game_state.ui_data.directed(),
+            matches!(selected_idx_opt, Some(_)) && game_state.tetra_info().ui_data().directed(),
             Button::new(button_name),
         )
         .clicked()
@@ -173,7 +197,7 @@ fn _create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
 ) {
     if ui
         .add_enabled(
-            matches!(selected_idx_opt, Some(_)) && !game_state.ui_data.directed(),
+            matches!(selected_idx_opt, Some(_)) && !game_state.tetra_info().ui_data().directed(),
             Button::new(button_name),
         )
         .clicked()
@@ -218,7 +242,7 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
 // Disable editing when algorithm is running, disable algorithm when editing
 pub fn create_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egui::CtxRef) {
     controls_ui(game_state, ctx, egui_ctx);
-    if matches!(game_state.ui_data.state(), UiMode::Edit) {
+    if matches!(game_state.tetra_info().ui_data().state(), UiMode::Edit) {
         graph_editor_ui(game_state, ctx, egui_ctx);
     } else {
         algorithm_ui(game_state, ctx, egui_ctx);
