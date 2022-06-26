@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::f32::consts::PI;
 
 use tetra::graphics::mesh::GeometryBuilder;
@@ -28,6 +27,7 @@ pub struct Edge {
     to: Position,
     color: Color,
     enabled: bool,
+    reversed: bool,
 
     arrow: Mesh,
     line: Mesh,
@@ -59,6 +59,7 @@ impl Edge {
         Edge {
             from,
             to,
+            reversed: false,
             color: Color::BLACK,
             arrow: Edge::create_arrow(ctx, from, to),
             line: Mesh::polyline(ctx, BASE_STROKE_WIDTH, &[from, to]).unwrap(),
@@ -69,20 +70,30 @@ impl Edge {
     pub fn update_position(&mut self, ctx: &mut Context, from: Position, to: Position) {
         self.from = from;
         self.to = to;
-        self.arrow = Edge::create_arrow(ctx, from, to);
+        if !self.reversed {
+            self.arrow = Edge::create_arrow(ctx, from, to);
+        } else {
+            self.arrow = Edge::create_arrow(ctx, to, from);
+        }
         self.line = Mesh::polyline(ctx, BASE_STROKE_WIDTH, &[from, to]).unwrap();
     }
 
-    pub fn disable_edge(&mut self) {
-        self.enabled = false;
-        self.color.a = 0.5;
+    pub fn reverse(&mut self) {
+        self.reversed = !self.reversed;
     }
 
-    pub fn enable_edge(&mut self) {
-        self.reset_state();
+    pub fn disable(&mut self) {
+        self.enabled = false;
+        self.color.a = 0.3;
+    }
+
+    pub fn enable(&mut self) {
+        self.enabled = true;
+        self.color.a = 1.0;
     }
 
     pub fn reset_state(&mut self) {
+        self.reversed = false;
         self.enabled = true;
         self.color.a = 1.0;
     }
@@ -143,7 +154,7 @@ impl TetraObject for Edge {
         }
     }
 
-    fn update(&mut self, ctx: &mut Context, info: &mut TetraObjectInfo) {
+    fn update(&mut self, _ctx: &mut Context, _info: &mut TetraObjectInfo) {
         ()
     }
 }

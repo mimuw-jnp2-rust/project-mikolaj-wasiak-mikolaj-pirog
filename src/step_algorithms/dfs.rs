@@ -58,7 +58,7 @@ impl EdgeStep {
 impl Step for EdgeStep {
     fn apply_step(&self, graph: &mut crate::graph::Graph) {
         if let Some(edge) = graph.edge_weight_mut(self.idx) {
-            edge.enable_edge();
+            edge.enable();
         }
     }
 }
@@ -66,20 +66,45 @@ impl Step for EdgeStep {
 pub struct Dfs {
     steps: VecDeque<Box<dyn Step>>,
     states: HashMap<NodeIndex, NodeState>,
+    preorder: Vec<NodeIndex>,
+    postorder: Vec<NodeIndex>,
 }
 
 impl StepAlgorithm for Dfs {
-    fn result<N, E, D: EdgeType>(
-        mut self,
-        graph: &Graph<N, E, D>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult {
+    fn run<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
         self.dfs(graph, start_idx);
-        StepAlgorithmResult::from_steps(self.steps, start_idx)
+    }
+
+    fn result(self) -> StepAlgorithmResult {
+        StepAlgorithmResult::from_steps(self.into_steps())
     }
 }
 
 impl Dfs {
+    pub fn states(&self) -> &HashMap<NodeIndex, NodeState> {
+        &self.states
+    }
+
+    pub fn _preorder(&self) -> &Vec<NodeIndex> {
+        &self.preorder
+    }
+
+    pub fn postorder(&self) -> &Vec<NodeIndex> {
+        &self.postorder
+    }
+
+    pub fn postorder_mut(&mut self) -> &mut Vec<NodeIndex> {
+        &mut self.postorder
+    }
+
+    pub fn into_steps(self) -> VecDeque<Box<dyn Step>> {
+        self.steps
+    }
+
+    pub fn steps_mut(&mut self) -> &mut VecDeque<Box<dyn Step>> {
+        &mut self.steps
+    }
+
     pub fn from_graph<N, E, D: EdgeType>(graph: &Graph<N, E, D>) -> Dfs {
         let mut states = HashMap::new();
         for index in graph.node_indices() {
@@ -88,28 +113,35 @@ impl Dfs {
         Dfs {
             steps: VecDeque::new(),
             states,
+            preorder: Vec::new(),
+            postorder: Vec::new(),
         }
     }
 
-    fn dfs<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
-        self.dfs_helper(graph, start_idx);
+    fn dfs<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex) {
+        self.dfs_helper(graph, node_index, Direction::Outgoing);
     }
 
-    fn dfs_helper<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex) {
+    pub fn dfs_reversed<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex) {
+        self.dfs_helper(graph, node_index, Direction::Incoming);
+    }
+
+    fn dfs_helper<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex, direction: Direction) {
         self.steps
             .push_back(Box::new(NodeStep::new(node_index, NodeState::Queued)));
 
         self.states.insert(node_index, NodeState::Queued);
+        self.preorder.push(node_index);
 
         let mut walker = graph
-            .neighbors_directed(node_index, Direction::Outgoing)
+            .neighbors_directed(node_index, direction)
             .detach();
 
         while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
             if let Some(other_state) = self.states.get(&other_node_idx) {
                 if matches!(other_state, NodeState::NotVisited) {
                     self.steps.push_back(Box::new(EdgeStep::new(edge_idx)));
-                    self.dfs_helper(graph, other_node_idx);
+                    self.dfs_helper(graph, other_node_idx, direction);
                 }
             }
         }
@@ -118,6 +150,7 @@ impl Dfs {
             .push_back(Box::new(NodeStep::new(node_index, NodeState::Visited)));
 
         self.states.insert(node_index, NodeState::Visited);
+        self.postorder.push(node_index);
     }
 }
 
@@ -138,7 +171,10 @@ mod tests {
         let b = graph.add_node(N::default());
         let edge_idx = graph.add_edge(a, b, E::default());
 
-        let res = Dfs::from_graph(&graph).result(&graph, a);
+        let mut dfs = Dfs::from_graph(&graph);
+        dfs.run(&mut graph, a);
+
+        let res = dfs.result();
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));

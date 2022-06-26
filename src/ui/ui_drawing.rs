@@ -2,16 +2,13 @@ use egui_tetra::egui::{self, Button, Ui};
 use petgraph::graph::NodeIndex;
 use petgraph::{Directed, Undirected};
 
-use crate::graph::edge::Edge;
-
-use crate::graph::node::Node;
 use crate::graph::random::generate;
 use crate::graph::GraphOnCanvas;
 use crate::input::input_state::{InputState, StateData};
 
 use crate::ui::ui_state::UiMode;
 
-use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm};
+use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm, Scc};
 use crate::step_algorithms::{DirectedStepAlgorithm, UndirectedStepAlgorithm};
 use crate::GameState;
 use tetra::Context;
@@ -54,7 +51,7 @@ fn graph_editor_ui(game_state: &mut GameState, ctx: &mut Context, egui_ctx: &egu
         ui.horizontal(|ui| {
             ui.label("Edges");
             ui.add(egui::DragValue::new(
-                game_state.tetra_info_mut().ui_data_mut().node_count_mut(),
+                game_state.tetra_info_mut().ui_data_mut().edge_count_mut(),
             ));
         });
         if ui.button("Generate").clicked() {
@@ -144,7 +141,7 @@ fn create_algo_button<T: StepAlgorithm>(
     game_state: &mut GameState,
     selected_idx_opt: Option<NodeIndex>,
     ui: &mut Ui,
-    algo: T,
+    mut algo: T,
     button_name: &str,
 ) {
     if ui
@@ -157,21 +154,21 @@ fn create_algo_button<T: StepAlgorithm>(
         if let Some(idx) = selected_idx_opt {
             let is_directed = game_state.tetra_info_mut().ui_data_mut().directed();
             let graph_copy = game_state.graph.clone();
-            let result = if is_directed {
-                algo.result(&graph_copy.into_edge_type::<Directed>(), idx)
+            if is_directed {
+                algo.run(&graph_copy.into_edge_type::<Directed>(), idx);
             } else {
-                algo.result(&graph_copy.into_edge_type::<Undirected>(), idx)
-            };
-            game_state.add_algorithm(result);
+                algo.run(&graph_copy.into_edge_type::<Undirected>(), idx);
+            }
+            game_state.add_algorithm(algo.result());
         }
     }
 }
 
-fn _create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
+fn create_directed_algo_button<T: DirectedStepAlgorithm>(
     game_state: &mut GameState,
     selected_idx_opt: Option<NodeIndex>,
     ui: &mut Ui,
-    algo: T,
+    mut algo: T,
     button_name: &str,
 ) {
     if ui
@@ -182,17 +179,17 @@ fn _create_directed_algo_button<T: DirectedStepAlgorithm<Node, Edge>>(
         .clicked()
     {
         if let Some(idx) = selected_idx_opt {
-            let result = algo.result(&game_state.graph, idx);
-            game_state.add_algorithm(result);
+            algo.run(&game_state.graph, idx);
+            game_state.add_algorithm(algo.result());
         }
     }
 }
 
-fn _create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
+fn _create_undirected_algo_button<T: UndirectedStepAlgorithm>(
     game_state: &mut GameState,
     selected_idx_opt: Option<NodeIndex>,
     ui: &mut Ui,
-    algo: T,
+    mut algo: T,
     button_name: &str,
 ) {
     if ui
@@ -204,8 +201,8 @@ fn _create_undirected_algo_button<T: UndirectedStepAlgorithm<Node, Edge>>(
     {
         if let Some(idx) = selected_idx_opt {
             let graph_copy = game_state.graph.clone().into_edge_type::<Undirected>();
-            let result = algo.result(&graph_copy, idx);
-            game_state.add_algorithm(result);
+            algo.run(&graph_copy.into_edge_type::<Undirected>(), idx);
+            game_state.add_algorithm(algo.result());
         }
     }
 }
@@ -236,6 +233,13 @@ fn algorithm_ui(game_state: &mut GameState, _ctx: &mut Context, egui_ctx: &egui:
             Bfs::from_graph(&game_state.graph),
             "bfs",
         );
+        create_directed_algo_button(
+            game_state,
+            game_state.graph.node_indices().next(),
+            ui,
+            Scc::new(),
+            "strongly connected components",
+        )
     });
 }
 

@@ -60,6 +60,10 @@ impl UiData {
         &mut self.node_count
     }
 
+    pub fn edge_count_mut(&mut self) -> &mut u32 {
+        &mut self.edge_count
+    }
+
     pub fn edge_count(&mut self) -> &mut u32 {
         &mut self.edge_count
     }

@@ -1,12 +1,10 @@
-use egui_tetra::egui;
-
 use std::f32;
 
 use crate::game_state::{AppMode, FONT_SIZE};
 use tetra::graphics::mesh::ShapeStyle;
 use tetra::graphics::text::{Font, Text};
+use tetra::graphics::DrawParams;
 use tetra::graphics::{mesh::Mesh, Color};
-use tetra::graphics::{Camera, DrawParams};
 use tetra::input::Key;
 use tetra::math::Vec2;
 use tetra::{input, Context};

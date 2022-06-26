@@ -1,14 +1,11 @@
-use egui_tetra::egui::CtxRef;
 use petgraph::{
     graph::NodeIndex,
     Directed,
     EdgeDirection::{Incoming, Outgoing},
 };
-use tetra::graphics::Camera;
 use tetra::Context;
 use tetra::{graphics::Color, math::Vec2};
 
-use crate::game_state::AppMode;
 use edge::Edge;
 
 use self::{

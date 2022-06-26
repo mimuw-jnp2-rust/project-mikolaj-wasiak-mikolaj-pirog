@@ -58,7 +58,7 @@ impl EdgeStep {
 impl Step for EdgeStep {
     fn apply_step(&self, graph: &mut crate::graph::Graph) {
         if let Some(edge) = graph.edge_weight_mut(self.idx) {
-            edge.enable_edge();
+            edge.enable();
         }
     }
 }
@@ -69,13 +69,13 @@ pub struct Bfs {
 }
 
 impl StepAlgorithm for Bfs {
-    fn result<N, E, D: EdgeType>(
-        mut self,
-        graph: &Graph<N, E, D>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult {
+    
+    fn run<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
         self.bfs(graph, start_idx);
-        StepAlgorithmResult::from_steps(self.steps, start_idx)
+    }
+
+    fn result(self) -> StepAlgorithmResult {
+        StepAlgorithmResult::from_steps(self.steps)
     }
 }
 
@@ -135,8 +135,9 @@ mod tests {
         let a = graph.add_node(1);
         let b = graph.add_node(2);
         let edge_idx = graph.add_edge(a, b, 0);
-
-        let res = Bfs::from_graph(&graph).result(&graph, a);
+        let mut bfs = Bfs::from_graph(&graph);
+        bfs.run(&graph, a);
+        let res = bfs.result();
 
         let mut desired = VecDeque::<Box<dyn Step>>::new();
         desired.push_back(Box::new(NodeStep::new(a, NodeState::Queued)));
