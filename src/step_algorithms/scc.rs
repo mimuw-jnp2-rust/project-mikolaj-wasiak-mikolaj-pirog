@@ -12,8 +12,8 @@ use super::{
 
 // Found them as rgb8 but rgb8 function isn't const
 static COLORS: [Color; 10] = [
-    Color::rgb(255. / 255., 95. / 255., 93. / 255.),
-    Color::rgb(0. / 255., 204. / 255., 191. / 255.),
+    Color::rgb(1., 95. / 255., 93. / 255.),
+    Color::rgb(0., 204. / 255., 191. / 255.),
     Color::rgb(114. / 255., 242. / 255., 235. / 255.),
     Color::rgb(116. / 255., 126. / 255., 126. / 255.),
     Color::rgb(63. / 255., 124. / 255., 133. / 255.),
@@ -42,7 +42,7 @@ pub struct PaintComponent {
 impl Step for PaintComponent {
     fn apply_step(&self, graph: &mut crate::graph::Graph) {
         self.indices.iter().for_each(|idx| {
-            if let Some(node) = graph.node_weight_mut(idx.clone()) {
+            if let Some(node) = graph.node_weight_mut(*idx) {
                 node.set_color(self.color);
             }
         });
@@ -76,7 +76,7 @@ pub struct Scc {
 impl DirectedStepAlgorithm for Scc {
     fn run<N, E>(&mut self, graph: &Graph<N, E>, _start_idx: NodeIndex) {
         let dfs = self.postorder_dfs(graph);
-        let rev_dfs = self.reversed_dfs(graph, &dfs.postorder());
+        let rev_dfs = self.reversed_dfs(graph, dfs.postorder());
         self.steps = dfs.into_steps();
         self.steps.push_back(Box::new(ResetState {}));
         self.steps.push_back(Box::new(Reverse {}));
@@ -106,20 +106,20 @@ impl Scc {
         graph.node_indices().for_each(|idx| {
             if let Some(state) = dfs.states().get(&idx) {
                 if matches!(state, dfs::NodeState::NotVisited) {
-                    dfs.run(&graph, idx);
+                    dfs.run(graph, idx);
                 }
             }
         });
         dfs
     }
 
-    fn reversed_dfs<N, E>(&mut self, graph: &Graph<N, E>, order: &Vec<NodeIndex>) -> Dfs {
+    fn reversed_dfs<N, E>(&mut self, graph: &Graph<N, E>, order: &[NodeIndex]) -> Dfs {
         let mut dfs = Dfs::from_graph(graph);
         let mut nr = 0;
         order.iter().rev().for_each(|idx| {
-            if let Some(state) = dfs.states().get(&idx) {
+            if let Some(state) = dfs.states().get(idx) {
                 if matches!(state, dfs::NodeState::NotVisited) {
-                    dfs.dfs_reversed(graph, idx.clone());
+                    dfs.dfs_reversed(graph, *idx);
                     self.components.insert(nr, dfs.postorder().clone());
                     let paint_step = PaintComponent {
                         color: COLORS[nr % 10],
@@ -166,17 +166,17 @@ mod tests {
         // a doesn't matter here, it runs from random node
         scc.run(&graph, a);
 
-        assert!(scc.components.contains_key(&(0 as usize)));
-        assert!(scc.components.contains_key(&(1 as usize)));
+        assert!(scc.components.contains_key(&0_usize));
+        assert!(scc.components.contains_key(&1_usize));
         assert_eq!(scc.components.len(), 2);
 
         // Change vector to hashset for set comparation
         assert_eq!(
-            HashSet::from_iter(scc.components.remove(&(0 as usize)).unwrap().iter()),
+            HashSet::from_iter(scc.components.remove(&0_usize).unwrap().iter()),
             HashSet::from([&a, &b, &c])
         );
         assert_eq!(
-            HashSet::from_iter(scc.components.remove(&(1 as usize)).unwrap().iter()),
+            HashSet::from_iter(scc.components.remove(&1_usize).unwrap().iter()),
             HashSet::from([&d, &e, &f])
         );
     }

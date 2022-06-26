@@ -8,7 +8,7 @@ use crate::input::input_state::{InputState, StateData};
 
 use crate::ui::ui_state::UiMode;
 
-use crate::step_algorithms::{Bfs, Dfs, StepAlgorithm, Scc};
+use crate::step_algorithms::{Bfs, Dfs, Scc, StepAlgorithm};
 use crate::step_algorithms::{DirectedStepAlgorithm, UndirectedStepAlgorithm};
 use crate::GameState;
 use tetra::Context;

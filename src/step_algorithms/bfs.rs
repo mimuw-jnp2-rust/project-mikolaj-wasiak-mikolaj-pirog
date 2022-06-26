@@ -69,7 +69,6 @@ pub struct Bfs {
 }
 
 impl StepAlgorithm for Bfs {
-    
     fn run<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex) {
         self.bfs(graph, start_idx);
     }

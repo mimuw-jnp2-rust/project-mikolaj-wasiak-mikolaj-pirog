@@ -36,10 +36,7 @@ pub struct StepAlgorithmResult {
 impl StepAlgorithmResult {
     pub fn from_steps(steps: VecDeque<Box<dyn Step>>) -> StepAlgorithmResult {
         let timer = Timer::new(0.3, true);
-        StepAlgorithmResult {
-            steps,
-            timer,
-        }
+        StepAlgorithmResult { steps, timer }
     }
 
     pub fn steps(&self) -> &VecDeque<Box<dyn Step>> {

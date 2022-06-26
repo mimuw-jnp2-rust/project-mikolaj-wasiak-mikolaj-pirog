@@ -154,7 +154,5 @@ impl TetraObject for Edge {
         }
     }
 
-    fn update(&mut self, _ctx: &mut Context, _info: &mut TetraObjectInfo) {
-        ()
-    }
+    fn update(&mut self, _ctx: &mut Context, _info: &mut TetraObjectInfo) {}
 }

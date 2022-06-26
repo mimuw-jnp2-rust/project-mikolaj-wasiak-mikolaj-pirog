@@ -122,20 +122,27 @@ impl Dfs {
         self.dfs_helper(graph, node_index, Direction::Outgoing);
     }
 
-    pub fn dfs_reversed<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex) {
+    pub fn dfs_reversed<N, E, D: EdgeType>(
+        &mut self,
+        graph: &Graph<N, E, D>,
+        node_index: NodeIndex,
+    ) {
         self.dfs_helper(graph, node_index, Direction::Incoming);
     }
 
-    fn dfs_helper<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, node_index: NodeIndex, direction: Direction) {
+    fn dfs_helper<N, E, D: EdgeType>(
+        &mut self,
+        graph: &Graph<N, E, D>,
+        node_index: NodeIndex,
+        direction: Direction,
+    ) {
         self.steps
             .push_back(Box::new(NodeStep::new(node_index, NodeState::Queued)));
 
         self.states.insert(node_index, NodeState::Queued);
         self.preorder.push(node_index);
 
-        let mut walker = graph
-            .neighbors_directed(node_index, direction)
-            .detach();
+        let mut walker = graph.neighbors_directed(node_index, direction).detach();
 
         while let Some((edge_idx, other_node_idx)) = walker.next(graph) {
             if let Some(other_state) = self.states.get(&other_node_idx) {
@@ -172,7 +179,7 @@ mod tests {
         let edge_idx = graph.add_edge(a, b, E::default());
 
         let mut dfs = Dfs::from_graph(&graph);
-        dfs.run(&mut graph, a);
+        dfs.run(&graph, a);
 
         let res = dfs.result();
 
