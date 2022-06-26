@@ -64,7 +64,7 @@ impl Node {
             circle: Mesh::circle(ctx, ShapeStyle::Fill, Vec2 { x: 0.0, y: 0.0 }, BASE_RADIUS)
                 .unwrap(),
             highlight: NodeHighlight::Normal,
-            node_text: position.to_string(),
+            node_text: String::from(""),
             font,
         }
     }
