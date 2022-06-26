@@ -14,35 +14,29 @@ pub trait Step: Any + Debug {
 }
 
 pub trait StepAlgorithm {
-    fn result<N, E, D: EdgeType>(
-        self,
-        graph: &Graph<N, E, D>,
-        start_idx: NodeIndex,
-    ) -> StepAlgorithmResult;
+    fn run<N, E, D: EdgeType>(&mut self, graph: &Graph<N, E, D>, start_idx: NodeIndex);
+    fn result(self) -> StepAlgorithmResult;
 }
 
-pub trait UndirectedStepAlgorithm<N, E> {
-    fn result(self, graph: &Graph<N, E, Undirected>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait UndirectedStepAlgorithm {
+    fn run<N, E>(&mut self, graph: &Graph<N, E, Undirected>, start_idx: NodeIndex);
+    fn result(self) -> StepAlgorithmResult;
 }
 
-pub trait DirectedStepAlgorithm<N, E> {
-    fn result(self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex) -> StepAlgorithmResult;
+pub trait DirectedStepAlgorithm {
+    fn run<N, E>(&mut self, graph: &Graph<N, E, Directed>, start_idx: NodeIndex);
+    fn result(self) -> StepAlgorithmResult;
 }
 
 pub struct StepAlgorithmResult {
-    start_idx: NodeIndex,
     steps: VecDeque<Box<dyn Step>>,
     timer: Timer,
 }
 
 impl StepAlgorithmResult {
-    pub fn from_steps(steps: VecDeque<Box<dyn Step>>, start_idx: NodeIndex) -> StepAlgorithmResult {
-        let timer = Timer::new(0.2, true);
-        StepAlgorithmResult {
-            start_idx,
-            steps,
-            timer,
-        }
+    pub fn from_steps(steps: VecDeque<Box<dyn Step>>) -> StepAlgorithmResult {
+        let timer = Timer::new(0.3, true);
+        StepAlgorithmResult { steps, timer }
     }
 
     pub fn steps(&self) -> &VecDeque<Box<dyn Step>> {
@@ -63,25 +57,16 @@ impl StepAlgorithmResult {
                 alg_step.apply_step(graph);
             } else {
                 self.timer_mut().stop();
-
-                self.toggle_start_node_gravity_ignoring(graph, false);
             }
-        }
-    }
-
-    fn toggle_start_node_gravity_ignoring(&mut self, graph: &mut crate::graph::Graph, on: bool) {
-        if let Some(node) = graph.node_weight_mut(self.start_idx) {
-            node.set_ignore_force(on)
         }
     }
 
     pub fn show_algorithm(&mut self, graph: &mut crate::graph::Graph) {
         // Allow node to move while the algorithm is being showcased
         for edge in graph.edge_weights_mut() {
-            edge.disable_edge();
+            edge.disable();
         }
 
         self.start_timer();
-        self.toggle_start_node_gravity_ignoring(graph, true);
     }
 }
